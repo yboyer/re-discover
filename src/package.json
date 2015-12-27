@@ -1,0 +1,22 @@
+{
+  "private": true,
+  "author": "Yoann Boyer <contact@yoannboyer.com>",
+  "name": "(Re)Discover",
+  "description": "",
+  "version": "1.0.0",
+  "main": "index.html",
+  "window": {
+  	"icon": "assets/icon.png",
+    "toolbar": false,
+    "width": 1250,
+    "min_width": 300,
+    "height": 690,
+    "min_height": 500
+  },
+  "dependencies": {
+    "gemini-scrollbar": "^1.3.0",
+    "nedb": "latest"
+  },
+  "chromium-args": "--enable-smooth-scrolling",
+  "js-flags": "--enable-smooth-scrolling"
+}

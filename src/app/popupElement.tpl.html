@@ -1,0 +1,35 @@
+<div class="popup-wrapper element" ng-mousedown="display.close()">
+	<div class="informations {{display.element.missing ? 'missing' : ''}}" ng-mousedown="$event.stopPropagation();">
+		<div class="bg" style="{{display.element.posterBackgroundUrl || 'background-color: #F6F7FB'}}"></div>
+		<div class="content">
+			<div class="poster {{display.element.poster_url ? 'clickable' : ''}}" style="{{display.element.posterBackgroundUrl}}" ng-click="display.element.poster_url && display.openPoster(display.element._id)" title=" {{display.element.poster_url ? 'Open in real size' : ''}}"></div>
+			<div class="infos">
+				<div class="title">{{display.element.title_fr}}<span ng-if="(title = display.element.title || display.element.title_en) && title != display.element.title_fr"> ({{title}})</span></div>
+				<div class="date" ng-hide="!display.element.runtime"><span>{{display.element.runtime}}</span> - <span class="quality">{{display.element.quality}}</span></div>
+				<div class="more">
+					<div class="th">
+						<div>Release:</div>
+						<div>Genre:</div>
+						<div>Langues:</div>
+						<div></div>
+						<div ng-hide="!display.element.director">Director:</div>
+						<div>Actors:</div>
+						<div></div>
+						<div>Abstract:</div>
+					</div>
+					<div>
+						<div>{{display.element.date || 'N/A'}}</div>
+						<div>{{display.element.genre.join(', ') || 'N/A'}}</div>
+						<div>{{display.element.languages.join(', ') || 'N/A'}}</div>
+						<div></div>
+						<div ng-hide="!display.element.director">{{display.element.director || 'N/A'}}</div>
+						<div>{{display.element.actors.join(', ') || 'N/A'}}</div>
+						<div></div>
+						<div>{{display.element.abstract_fr || display.element.abstract_en || 'N/A'}}</div>
+					</div>
+				</div>
+			</div>
+			<div class="showFile" ng-click="display.showItem(display.element.path)" ng-hide="!display.element.size" title="Show in folder">{{display.element.size}}</div>
+		</div>
+	</div>
+</div>

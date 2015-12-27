@@ -1,0 +1,9 @@
+# nwjs
+nw-builds/
+nw-cache/
+
+# Others
+core/
+ideas/
+node_modules/
+nwjs/

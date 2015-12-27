@@ -1,0 +1,19 @@
+<div class="home">
+	<div class="popup-wrapper">
+		<div class="pop {{home.hidePop ? 'hide' : ''}}">
+			<div class="title">Welcome to your own multimedia database !</div>
+			<div class="desc">(Re)Discover allow you to see all your multimedia content in one place</div>
+			<div class="info">Select your VLC app location:</div>
+			<div ng-click="home.findVlc()" class="select">{{home.playerPath.val || 'Browse...'}}</div>
+			<div class="info">Select the file extention which you want to show:</div>
+			<div class="checkboxes">
+				<div ng-repeat="checkbox in home.checkboxes"><input type="checkbox" ng-model="checkbox.checked"  checked id="{{checkbox.ext}}"><label for="{{checkbox.ext}}">{{checkbox.ext}}</label></div>
+			</div>
+			<div class="info">Select directories which you want to browse:</div>
+			<div class="paths">
+				<div ng-repeat="dir in home.directories" ng-click="home.choose($index)" class="{{dir.val ? 'item' : 'select'}}">{{dir.val ? ' - ' : ''}} {{dir.val || 'Choose directory...'}}</div>
+			</div>
+			<div class="next {{home.next}}" ng-click="home.launch(home.next)"></div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,23 @@
+<div class="browser grid {{browser.status}}" ng-controller="BrowserCtrl as browser">
+	<header ng-include="'header.tpl.html'"></header>
+	<div class="wrapElems">
+		<div id="elements" class="gm-scroll-view">
+			<div class="nothing" ng-show="browser.elements.length == 0">Nothing found...</div>
+			<div class="elem {{elem.missing ? 'missing' : ''}} {{elem.type.toLowerCase()}}" ng-repeat="elem in browser.elements | orderBrowser:browser.sorting">
+				<div class="poster" ng-click="elem.type != 'Serie' ? browser.play($event, elem._id) : browser.goToEpisodes($event, elem._id)" style="{{elem.poster}}">
+					<div class="overlay {{elem.type != 'Serie' ? 'play' : 'next'}}"></div>
+				</div>
+				<div ng-class="elem.updated ? 'title' : 'title new'" title="{{elem.name}}" ng-click="find.show($event, elem)">{{elem.name}}</div>
+				<div class="genre" title="{{elem.genre.join(', ')}}">{{elem.genre.join(', ')}}</div>
+				<div class="duration">{{elem.runtime}}</div>
+			</div>
+		</div>
+		<div ng-include="'popupSearch.tpl.html'"></div>
+		<div class="gm-scrollbar bro -vertical">
+			<div class="thumb"></div>
+		</div>
+		<div class="gm-scrollbar bro -horizontal">
+			<div class="thumb"></div>
+		</div>
+	</div>
+</div>
