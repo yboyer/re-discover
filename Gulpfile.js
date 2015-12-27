@@ -20,9 +20,7 @@ var merge = require('merge-stream');
 var nwConf = {
   files: ['core/**/*'],
   version: '0.12.3',
-  // platforms: ['osx64', 'win64'],
-  platforms: ['osx'],
-  // platforms: ['win64'],
+  platforms: ['osx64', 'win64'],
   buildDir: 'nw-builds',
   cacheDir: 'nw-cache',
   winIco: 'media/icon.ico',
