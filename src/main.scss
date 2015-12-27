@@ -51,7 +51,7 @@ html {
 
 	body {
 		margin: 0;
-		font-family: Open Sans;
+		font-family: 'Open Sans', sans-serif;
 		color: #13161D;
 		background-color: #F6F7FB;
 		cursor: default;
@@ -161,7 +161,7 @@ header {
 			font-size: 12px;
 			padding: 6px;
 			text-align: left;
-			font-weight: 500;
+			font-weight: 600;
 			color: rgb(71, 71, 71);
 			transition: 500ms visibility;
 
@@ -444,7 +444,7 @@ header {
 			padding-left: 17px;
 			line-height: 27px;
 			background-color: rgb(70, 71, 81);
-			font-weight: 500;
+			font-weight: 600;
 			z-index: 1;
 			box-sizing: border-box;
 
@@ -470,7 +470,7 @@ header {
 			color: rgb(163, 163, 163);
 			box-shadow: 0 1px rgba(29, 29, 29, 1), 0 2px rgba(52, 52, 52, 1);
 			font-size: 12px;
-			font-weight: 500;
+			font-weight: 600;
 
 			&.missing {
 				&::before {
@@ -614,7 +614,7 @@ header {
 			letter-spacing: 0.5px;
 			margin-top: 2px;
 			color: rgba(19, 22, 29, 0.6);
-			font-weight: 500;
+			font-weight: 600;
 		}
 
 		#elements {
@@ -683,7 +683,7 @@ header {
 				}
 			}
 			.genre, .duration{
-				font-weight: 500;
+				font-weight: 600;
 				color: rgba(60, 76, 85, 0.5);
 			}
 		}
@@ -1048,7 +1048,7 @@ header {
 								margin-bottom: 2px;
 							}
 							.th {
-								font-weight: 500;
+								font-weight: 600;
 								padding-right: 12px;
 								color: #FFF;
 								flex-shrink: 0;
@@ -1127,7 +1127,7 @@ header {
 
 			.title {
 				font-size: 23px;
-				font-weight: 500;
+				font-weight: 600;
 				text-align: center;
 			}
 
@@ -1140,7 +1140,7 @@ header {
 				font-size: 15px;
 				text-decoration: underline;
 				margin-bottom: 7px;
-				font-weight: 500;
+				font-weight: 600;
 				margin-top: 25px;
 			}
 

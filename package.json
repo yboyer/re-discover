@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "postinstall": "(cd src && npm install)",
-    "start": "gulp build && nw core"
+    "start": "nw core"
   },
   "devDependencies": {
     "del": "^2.2.0",
