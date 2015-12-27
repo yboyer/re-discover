@@ -3,7 +3,8 @@
   "description": "",
   "version": "1.0.0",
   "scripts": {
-    "postinstall": "(cd src && npm install)"
+    "postinstall": "(cd src && npm install)",
+    "start": "gulp build && nw core"
   },
   "devDependencies": {
     "del": "^2.2.0",
@@ -21,6 +22,7 @@
     "gulp-uglify": "^1.5.1",
     "gulp-util": "^3.0.7",
     "merge-stream": "^1.0.0",
+    "nw": "^0.12.3",
     "nw-builder": "^2.2.0"
   }
 }
