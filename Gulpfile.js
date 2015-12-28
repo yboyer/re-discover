@@ -24,8 +24,7 @@ var nwConf = {
   buildDir: 'nw-builds',
   cacheDir: 'nw-cache',
   winIco: 'media/icon.ico',
-  macIcns: 'media/icon.icns',
-  zip: null
+  macIcns: 'media/icon.icns'
 };
 
 var src = {

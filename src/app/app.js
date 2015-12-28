@@ -200,8 +200,8 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 			},
 			removeEntry: function(id, callback) {
 				try {
-					fs.unlinkSync(filePosterPath + '/' + id + '.jpg');
-					fs.unlinkSync(filePosterPath + '/_' + id + '.jpg');
+					fs.unlinkSync(postersPath + '/' + id + '.jpg');
+					fs.unlinkSync(postersPath + '/_' + id + '.jpg');
 				} catch (e) {}
 				db.remove({
 					_id: id
@@ -356,7 +356,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
 
 		$scope.main.updateDatabase = function() {
-			if ($scope.main.databaseBusy)
+			if ($scope.main.databaseBusy || localStorage.path2browse == undefined)
 				return;
 
 			$scope.main.databaseBusy = true;
@@ -609,7 +609,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 		}).create();
 
 
-		$scope.browser.disableFull = JSON.parse(localStorage.disableFull);
+		$scope.browser.disableFull = JSON.parse(localStorage.disableFull || 'false');
 		$scope.browser.toggleFull = function() {
 			$scope.browser.disableFull = localStorage.disableFull = !$scope.browser.disableFull;
 			$timeout(function() {
@@ -841,7 +841,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 			$scope.browser.status = '';
 		}
 		$scope.display.openPoster = function(id) {
-			gui.Shell.openItem(filePosterPath + '/' + id + '.jpg');
+			gui.Shell.openItem(postersPath + '/' + id + '.jpg');
 		}
 		$scope.display.showItem = function(itemPath) {
 			gui.Shell.showItemInFolder(itemPath);
@@ -914,7 +914,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 						spinner: true,
 						text: 'Downloading small poster for “' + data.title_fr + '”...'
 					});
-					tools.downloadPoster(data.poster.replace('_SIZE_', 'SY' + Math.ceil(195 * devicePixelRatio)), filePosterPath + '/_' + referenceId + '.jpg', function() {
+					tools.downloadPoster(data.poster.replace('_SIZE_', 'SY' + Math.ceil(195 * devicePixelRatio)), postersPath + '/_' + referenceId + '.jpg', function() {
 						db.update({
 							_id: referenceId
 						}, {
@@ -930,7 +930,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 							spinner: true,
 							text: 'Downloading original poster for “' + data.title_fr + '”...'
 						});
-						tools.downloadPoster(data.poster.replace('_SIZE_', 'SY1500').replace('w154', 'original'), filePosterPath + '/' + referenceId + '.jpg', function() {
+						tools.downloadPoster(data.poster.replace('_SIZE_', 'SY1500').replace('w154', 'original'), postersPath + '/' + referenceId + '.jpg', function() {
 							db.update({
 								_id: referenceId
 							}, {
@@ -1001,7 +1001,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 							spinner: true,
 							text: 'Downloading small poster for “' + doc.title_fr + '”...'
 						});
-						tools.downloadPoster(doc.poster_url.replace('_SIZE_', 'SY' + Math.ceil(195 * devicePixelRatio)), filePosterPath + '/_' + doc._id + '.jpg', function() {
+						tools.downloadPoster(doc.poster_url.replace('_SIZE_', 'SY' + Math.ceil(195 * devicePixelRatio)), postersPath + '/_' + doc._id + '.jpg', function() {
 							db.update({
 								_id: doc._id
 							}, {
@@ -1015,7 +1015,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 								spinner: true,
 								text: 'Downloading original poster for “' + doc.title_fr + '”...'
 							});
-							tools.downloadPoster(doc.poster_url.replace('_SIZE_', 'SY1500'), filePosterPath + '/' + doc._id + '.jpg', function() {
+							tools.downloadPoster(doc.poster_url.replace('_SIZE_', 'SY1500'), postersPath + '/' + doc._id + '.jpg', function() {
 								db.update({
 									_id: doc._id
 								}, {
@@ -1120,7 +1120,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 														spinner: true,
 														text: 'Downloading small poster for “' + episode.title_fr + '”...'
 													});
-													tools.downloadPoster(episode.poster_url.replace('_SIZE_', 'SY' + Math.ceil(195 * devicePixelRatio)), filePosterPath + '/_' + referenceId + '.jpg', function() {
+													tools.downloadPoster(episode.poster_url.replace('_SIZE_', 'SY' + Math.ceil(195 * devicePixelRatio)), postersPath + '/_' + referenceId + '.jpg', function() {
 														db.update({
 															_id: referenceId
 														}, {
@@ -1136,7 +1136,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 															spinner: true,
 															text: 'Downloading original poster for “' + episode.title_fr + '”...'
 														});
-														tools.downloadPoster(episode.poster_url.replace('_SIZE_', 'SY1500'), filePosterPath + '/' + referenceId + '.jpg', function() {
+														tools.downloadPoster(episode.poster_url.replace('_SIZE_', 'SY1500'), postersPath + '/' + referenceId + '.jpg', function() {
 															db.update({
 																_id: referenceId
 															}, {
@@ -1422,9 +1422,9 @@ document.body.blind('ctrl+r', function() {
 		}, function() {
 			db.loadDatabase(function(err) {
 				localStorage.clear();
-				fs.readdir(filePosterPath, function(err, files) {
+				fs.readdir(postersPath, function(err, files) {
 					for (var f = files.length - 1; f >= 0; f--) {
-						fs.unlinkSync(filePosterPath + '/' + files[f]);
+						fs.unlinkSync(postersPath + '/' + files[f]);
 					};
 					gui.App.quit();
 				})

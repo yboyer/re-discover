@@ -20,7 +20,7 @@ angular.module('home', ['ngRoute'])
 		checked: exts.indexOf('mp4') != -1 || true
 	}, {
 		ext: 'mkv',
-		checked: exts.indexOf('mkv') != -1
+		checked: exts.indexOf('mkv') != -1 || true
 	}, {
 		ext: 'flv',
 		checked: exts.indexOf('flv') != -1
@@ -84,7 +84,7 @@ angular.module('home', ['ngRoute'])
 		$scope.home.directories[index].show();
 	}
 
-	var paths = JSON.parse(localStorage.path2browse);
+	var paths = JSON.parse(localStorage.path2browse || '[]');
 	for (var p = paths.length - 1; p >= 0; p--) {
 		$scope.home.directories.push($scope.home.getDirChooser(path.join(paths[p])))
 	};
