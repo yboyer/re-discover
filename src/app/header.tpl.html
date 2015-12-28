@@ -1,11 +1,11 @@
 <div id="search">
-	<input placeholder="Search{{browser.searchIn ? ' in ' + browser.searchIn : ''}}..." ng-change="browser.updateList(); browser.resetScroll()" ng-keydown="browser.searchKD($event)" ng-model="browser.searchValue" ng-trim="false">
+  <input placeholder="Search{{browser.searchIn ? ' in ' + browser.searchIn : ''}}..." ng-change="browser.updateList(); browser.resetScroll()" ng-keydown="browser.searchKD($event)" ng-model="browser.searchValue" ng-trim="false">
 </div>
 <div class="sorting">
-	{{browser.sortingName}}
-	<div class="list">
-		<div ng-repeat="(value, name) in browser.sorts | orderBy:'name'" ng-hide="value == browser.sorting" ng-click="browser.setSorting(value); browser.resetScroll()" ng-class="value == browser.sorting ? 'selected' : ''">{{name}}</div>
-	</div>
+  {{browser.sortingName}}
+  <div class="list">
+    <div ng-repeat="(value, name) in browser.sorts | orderBy:'name'" ng-hide="value == browser.sorting" ng-click="browser.setSorting(value); browser.resetScroll()" ng-class="value == browser.sorting ? 'selected' : ''">{{name}}</div>
+  </div>
 </div>
 <div class="toggleFull" ng-click="browser.toggleFull()" ng-class="browser.disableFull ? 'enabled' : ''"></div>
 <div class="display {{browser.display == 'grid' ? 'list' : 'grid'}}" ng-click="browser.toggleDisplay()"></div>

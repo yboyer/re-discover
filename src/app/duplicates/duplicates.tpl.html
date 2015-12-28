@@ -1,19 +1,19 @@
 <div class="browser duplicates" ng-controller="BrowserCtrl as browser">
-	<div class="wrapElems">
-		<div id="elements" class="gm-scroll-view">
-			<div ng-repeat="elem in (elems = (browser.elements | orderBrowser:'name'))">
-				<div class="elem">
-					<div class="filename">{{elem.filename}}</div>
-					<div class="path" title="{{elem.path}}" ng-click="display.showItem(elem.path)">{{browser.dirname(elem.path)}}</div>
-					<div class="path" title="{{path}}" ng-click="display.showItem(path)" ng-repeat="path in elem.duplicates">{{browser.dirname(path)}}</div>
-				</div>
-			</div>
-		</div>
-		<div class="gm-scrollbar bro -vertical">
-			<div class="thumb"></div>
-		</div>
-		<div class="gm-scrollbar bro -horizontal">
-			<div class="thumb"></div>
-		</div>
-	</div>
+  <div class="wrapElems">
+    <div id="elements" class="gm-scroll-view">
+      <div ng-repeat="elem in (elems = (browser.elements | orderBrowser:'name'))">
+        <div class="elem">
+          <div class="filename">{{elem.filename}}</div>
+          <div class="path" title="{{elem.path}}" ng-click="display.showItem(elem.path)">{{browser.dirname(elem.path)}}</div>
+          <div class="path" title="{{path}}" ng-click="display.showItem(path)" ng-repeat="path in elem.duplicates">{{browser.dirname(path)}}</div>
+        </div>
+      </div>
+    </div>
+    <div class="gm-scrollbar bro -vertical">
+      <div class="thumb"></div>
+    </div>
+    <div class="gm-scrollbar bro -horizontal">
+      <div class="thumb"></div>
+    </div>
+  </div>
 </div>
