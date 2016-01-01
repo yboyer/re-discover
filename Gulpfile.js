@@ -15,6 +15,7 @@ var html2js = require("gulp-html2js");
 var minifyHtml = require('gulp-minify-html');
 var del = require('del');
 var merge = require('merge-stream');
+var jshint = require('gulp-jshint');
 
 
 var nwConf = {
@@ -34,6 +35,18 @@ var src = {
     html: ['src/app/**/*.tpl.html'],
     js: ['src/app/**/*.tpl.html']
   }
+}
+
+var jshintrc = {
+  browser: true,
+  node: true,
+  unused: true,
+  undef: true,
+  // curly: true,
+  latedef: true,
+  noarg: true,
+  boss: true,
+  eqnull: true
 }
 
 gulp.task('default', ['clean', 'html2js', 'concat', 'scss', 'copy']);
@@ -88,6 +101,12 @@ gulp.task('concat', function() {
   );
 });
 
+gulp.task('jshint', function() {
+  gulp.src(src.js)
+    .pipe(jshint(jshintrc))
+    .pipe(jshint.reporter('jshint-stylish'));
+});
+
 gulp.task('copy', function() {
   return merge(
     gulp.src('src/package.json').pipe(cache('package')).pipe(remember('package')).pipe(gulp.dest('core/')),
@@ -112,7 +131,7 @@ gulp.task('scss', function() {
     .pipe(gulp.dest('core/'));
 });
 
-gulp.task('build', ['default'],function() {
+gulp.task('build', ['default'], function() {
   var nw = new NwBuilder(nwConf);
 
   nw.on('log', function(msg) {

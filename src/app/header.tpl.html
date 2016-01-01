@@ -4,7 +4,7 @@
 <div class="sorting">
   {{browser.sortingName}}
   <div class="list">
-    <div ng-repeat="(value, name) in browser.sorts | orderBy:'name'" ng-hide="value == browser.sorting" ng-click="browser.setSorting(value); browser.resetScroll()" ng-class="value == browser.sorting ? 'selected' : ''">{{name}}</div>
+    <div ng-repeat="(value, name) in browser.sorts | orderBy:'name'" ng-hide="value == browser.sorting || (value == 'season' && !browser.serie_id)" ng-click="browser.setSorting(value); browser.resetScroll()" ng-class="value == browser.sorting ? 'selected' : ''">{{name}}</div>
   </div>
 </div>
 <div class="toggleFull" ng-click="browser.toggleFull()" ng-class="browser.disableFull ? 'enabled' : ''"></div>

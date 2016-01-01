@@ -1,6 +1,6 @@
 <div class="popup-wrapper search" ng-mousedown="find.close()">
   <div class="choose" ng-mousedown="$event.stopPropagation();">
-    <div id="search"><input placeholder="{{find.searchPlaceholder}}" ng-keydown="find.search($event)" ng-model="find.searchValue"></div>
+    <div id="search"><input placeholder="{{find.searchPlaceholder}}" ng-keydown="find.searchKD($event)" ng-model="find.searchValue"></div>
     <div id="info" class="{{find.spinner}}">{{find.searchInfo}}</div>
     <div id="results">
       <div class="nothingFound" ng-show="find.listOk && find.results.length == 0">Nothing found...</div>

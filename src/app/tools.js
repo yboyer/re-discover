@@ -1,17 +1,3 @@
-/// TOOLS
-function xmlRequest(url, callback) {
-  var req = new XMLHttpRequest();
-  req.open('GET', url, true);
-  req.onreadystatechange = function() {
-    if (req.readyState == 4) {
-      if (req.status == 200) {
-        callback(req.responseText);
-      }
-    }
-  };
-  req.send(null);
-}
-
 function requestAsync(url, callback) {
   var req = new XMLHttpRequest();
 
@@ -30,35 +16,42 @@ function requestAsync(url, callback) {
 
 function browseDirectories(paths, cb) {
   var total = paths.length;
-  var files = []
+  var files = [];
+
+  var handler = function(err, f) {
+    if (!err)
+      files = f.concat(files);
+    if (--total === 0)
+      cb(files);
+  };
 
   for (var p = paths.length - 1; p >= 0; p--) {
-    browseDirectory(paths[p], function(err, f) {
-      if (!err)
-        files = f.concat(files);
-      if (--total == 0)
-        cb(files);
-    })
-  };
+    browseDirectory(paths[p], handler);
+  }
 }
 
-function browseDirectory(e, d) {
-  var b = [];
-  fs.readdir(e, function(c, g) {
-    if (c) return d(c);
-    var f = g.length;
-    if (!f) return d(null, cleanFiles(b));
-    g.forEach(function(a) {
-      a = e + "/" + a;
-      fs.stat(a, function(e, c) {
-        c && c.isDirectory() ? browseDirectory(a, function(c, a) {
-          b = b.concat(a);
-          --f || d(null, cleanFiles(b))
-        }) : (b.push(a), --f || d(null, cleanFiles(b)))
-      })
-    })
-  })
-};
+function browseDirectory(dir, done) {
+  var files = [];
+  fs.readdir(dir, function(err, list) {
+    if (err) return done(err);
+    var pending = list.length;
+    if (!pending) return done(null, cleanFiles(files));
+    list.forEach(function(file) {
+      file = path.resolve(dir, file);
+      fs.stat(file, function(err, stat) {
+        if (stat && stat.isDirectory()) {
+          browseDirectory(file, function(err, res) {
+            files = files.concat(res);
+            if (!--pending) done(null, cleanFiles(files));
+          });
+        } else {
+          files.push(file);
+          if (!--pending) done(null, cleanFiles(files));
+        }
+      });
+    });
+  });
+}
 
 function cleanFiles(files) {
   var res = [],
@@ -69,12 +62,6 @@ function cleanFiles(files) {
   return res;
 }
 
-
-function getBackground(callback) {
-  win.capturePage(function(img) {
-    callback(img);
-  });
-}
 
 var defaultDiacriticsRemovalMap = [{
   'base': 'a',
@@ -224,7 +211,7 @@ function readableBytes(size) {
 
 String.prototype.capitalize = function() {
   return this.charAt(0).toUpperCase() + this.slice(1);
-}
+};
 
 Number.prototype.twoDigits = function() {
   if (this.length > 2)
@@ -243,23 +230,103 @@ Object.prototype.clone = function() {
 
 
 (function(window, document, undefined) {
+  var specialkeys = {
+    "backspace": 8,
+    "tab": 9,
+    "enter": 13,
+    "pause/break": 19,
+    "caps lock": 20,
+    "escape": 27,
+    "page up": 33,
+    "page down": 34,
+    "end": 35,
+    "home": 36,
+    "left arrow": 37,
+    "up arrow": 38,
+    "right arrow": 39,
+    "down arrow": 40,
+    "insert": 45,
+    "delete": 46,
+    "left window": 91,
+    "right window": 92,
+    "select key": 93,
+    "numpad 0": 96,
+    "numpad 1": 97,
+    "numpad 2": 98,
+    "numpad 3": 99,
+    "numpad 4": 100,
+    "numpad 5": 101,
+    "numpad 6": 102,
+    "numpad 7": 103,
+    "numpad 8": 104,
+    "numpad 9": 105,
+    "multiply": 106,
+    "add": 107,
+    "subtract": 109,
+    "decimal point": 110,
+    "divide": 111,
+    "f1": 112,
+    "f2": 113,
+    "f3": 114,
+    "f4": 115,
+    "f5": 116,
+    "f6": 117,
+    "f7": 118,
+    "f8": 119,
+    "f9": 120,
+    "f10": 121,
+    "f11": 122,
+    "f12": 123,
+    "num lock": 144,
+    "scroll lock": 145,
+    ";": 186,
+    "=": 187,
+    ",": 188,
+    "-": 189,
+    ".": 190,
+    "/": 191,
+    "`": 192,
+    "[": 219,
+    "\\": 220,
+    "]": 221,
+    "'": 222
+  };
+
   var ctrlCmd = (/Mac/.test(navigator.platform) ? 'meta' : 'ctrl') + 'Key';
 
-  function _addShortcut(e, keys, callback) {
-    var keyCode = e.keyCode || e.which;
+  HTMLElement.prototype.shortcut = function(options) {
+    if (typeof options != 'object')
+      throw new TypeError('Invalid options.');
 
-    if (e.metaKey && keys[0] === 'cmd' || e.ctrlKey && keys[0] === 'ctrl' || e[ctrlCmd] && keys[0] === 'ctrlCmd') {
-      if (String.fromCharCode(keyCode) === keys[1].toUpperCase()) {
-        callback(e);
+    if (!options.hasOwnProperty('key'))
+      throw new TypeError("Shortcut requires 'key' to specify key combinations.");
+
+    if (!options.hasOwnProperty('active'))
+      throw new TypeError("Shortcut requires 'active' to specify key combinations.");
+
+    this.addEventListener(options.action || 'keydown', function(e) {
+      var keyCode = e.keyCode || e.which;
+      options.keys = options.key.split('+');
+
+      for (var k = options.keys.length - 1; k >= 0; k--) {
+        var key = options.keys[k].toLowerCase();
+
+        if (key == 'ctrlcmd' && !e[ctrlCmd])
+          return;
+        if (key == 'cmd' && !e.metaKey)
+          return;
+        if (key == 'ctrl' && !e.ctrlKey)
+          return;
+        if (key == 'shift' && !e.shiftKey)
+          return;
+        if (key == 'alt' && !e.altKey)
+          return;
+
+        if (specialkeys[key] != keyCode && String.fromCharCode(keyCode).toLowerCase() != key)
+          return;
+
+        options.active();
       }
-    }
-  }
-
-  HTMLElement.prototype.blind = function(keys, callback, action) {
-    keys = keys.split('+');
-
-    this.addEventListener(action || 'keydown', function(evt) {
-      _addShortcut(evt, keys, callback);
-    }, false);
-  }
+    });
+  };
 })(window, document);

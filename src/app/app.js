@@ -1,12 +1,9 @@
 var fs = require('fs');
-
 var path = require('path');
 var gui = require('nw.gui');
-var crypt = require('crypto');
 var http = require('http');
 var win = gui.Window.get();
 var exec = require('child_process').exec;
-var storageFolder = path.dirname(process.execPath);
 var storageFolder = gui.App.dataPath;
 var postersPath = path.join(storageFolder, 'posters');
 
@@ -46,12 +43,14 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
   }])
   .factory('tools', function() {
     return {
+      _possibleLanguages: ['vff', 'vfq', 'vfi', 'vf2', 'vo', 'multi', 'french', 'truefrench'],
       downloadPoster: function(url, filename, callback) {
         http.get(url, function(response) {
-          if (callback)
+          if (callback) {
             response.pipe(fs.createWriteStream(filename)).on('close', callback);
-          else
+          } else {
             response.pipe(fs.createWriteStream(filename));
+          }
         });
       },
       _removeEmptyElem: function(doc, callback) {
@@ -63,6 +62,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             $exists: false
           }
         }, {}, function() {
+          // if element not removed
           db.update({
             path: doc.path
           }, {
@@ -71,13 +71,15 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
               duplicates: []
             }
           }, {}, function() {
-            if (--tools.totalMissing == 0)
+            if (--tools.totalMissing === 0) {
               callback();
+            }
           });
         });
       },
-      _updateCallback: function(paths, callback) {
+      _updateMissings: function(paths, callback) {
         var tools = this;
+
         db.find({
           missing: {
             $ne: true
@@ -91,11 +93,11 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         }, function(err, docs) {
           console.log('File missing:', docs.length, ':', docs);
 
-          if (docs.length != 0) {
+          if (docs.length !== 0) {
             tools.totalMissing = docs.length;
             for (var d = docs.length - 1; d >= 0; d--) {
               tools._removeEmptyElem(docs[d], callback);
-            };
+            }
           } else {
             callback();
           }
@@ -108,16 +110,16 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         browseDirectories(path2browse, function(files) {
           var total = files.length;
 
-          if (files.length == 0) {
-            tools._updateCallback(files, callback);
+          if (files.length === 0) {
+            tools._updateMissings(files, callback);
             return;
           }
 
-
           db.find({}, function(err, docs) {
-            var obj = {};
+            // Simplify the research of existant filenames
+            var dbFilenames = {};
             for (var d = docs.length - 1; d >= 0; d--) {
-              obj[docs[d].filename] = {
+              dbFilenames[docs[d].filename] = {
                 path: docs[d].path,
                 birthtime: docs[d].birthtime,
                 quality: docs[d].quality,
@@ -128,9 +130,9 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
               };
             }
 
-            var filnames = [];
-            var paths = [];
 
+            var fileNames = [];
+            var paths = [];
             for (var f = files.length - 1; f >= 0; f--) {
               var stat = fs.statSync(files[f]);
               var filename = path.parse(files[f]).name;
@@ -138,24 +140,28 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
               var size = Math.round(stat.size / 1048576);
 
               var quality = 'SD';
-              if (/.*720.*/.test(filename))
+              if (/720/.test(filename)) {
                 quality = 'HD';
-              if (/.*1080.*/.test(filename))
+              } else if (/1080/.test(filename)) {
                 quality = 'Full HD';
+              } else if (/2160/.test(filename) || /4K/.test(filename)) {
+                quality = '4K';
+              } else if (/4320/.test(filename) || /8K/.test(filename)) {
+                quality = '8K';
+              }
 
               var languages = [];
-              var possibleLanguages = ['vff', 'vfq', 'vfi', 'vf2', 'vo', 'multi', 'french', 'truefrench'];
-              for (var p = possibleLanguages.length - 1; p >= 0; p--) {
-                if (new RegExp(possibleLanguages[p], 'i').test(filename)) {
-                  languages.push(possibleLanguages[p].toUpperCase());
+              for (var p = tools._possibleLanguages.length - 1; p >= 0; p--) {
+                if (new RegExp(tools._possibleLanguages[p], 'i').test(filename)) {
+                  languages.push(tools._possibleLanguages[p].toUpperCase());
                 }
               }
 
-              var set;
+              var update;
               paths.push(fullPath);
-              if (filnames.indexOf(filename) == -1) {
-                filnames.push(filename);
-                set = {
+              if (fileNames.indexOf(filename) == -1) {
+                fileNames.push(filename);
+                update = {
                   $set: {
                     path: fullPath,
                     birthtime: stat.birthtime,
@@ -165,18 +171,19 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                     missing: false,
                     size: size
                   }
-                }
+                };
               } else {
-                set = {
+                update = {
                   $push: {
                     duplicates: fullPath
                   }
-                }
+                };
               }
 
-              if (angular.equals(set.$set, obj[filename])) {
-                if (--total == 0)
-                  tools._updateCallback(paths, callback);
+              if (angular.equals(update.$set, dbFilenames[filename])) {
+                if (--total === 0) {
+                  tools._updateMissings(paths, callback);
+                }
               } else {
                 db.update({
                   filename: filename,
@@ -184,25 +191,22 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                   path: {
                     $exists: true
                   }
-                }, set, {
+                }, update, {
                   upsert: true
                 }, function() {
                   // Find missing files
-                  if (--total == 0)
-                    tools._updateCallback(paths, callback);
+                  if (--total === 0) {
+                    tools._updateMissings(paths, callback);
+                  }
                 });
               }
-            };
+            }
           });
-
-
         });
       },
       removeEntry: function(id, callback) {
-        try {
-          fs.unlinkSync(postersPath + '/' + id + '.jpg');
-          fs.unlinkSync(postersPath + '/_' + id + '.jpg');
-        } catch (e) {}
+        fs.unlink(postersPath + '/' + id + '.jpg', function() {});
+        fs.unlink(postersPath + '/_' + id + '.jpg', function() {});
         db.remove({
           _id: id
         }, {}, callback);
@@ -221,6 +225,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           filtered.sort(function(a, b) {
             a.sortValue = removeDiacritics(a.name.charAt(0)).toUpperCase();
             b.sortValue = removeDiacritics(b.name.charAt(0)).toUpperCase();
+
             return a.name.localeCompare(b.name);
           });
           break;
@@ -240,8 +245,6 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           filtered.sort(function(a, b) {
             asortDate = (a.birthtime || 0);
             bsortDate = (b.birthtime || 0);
-
-
             a.sortValue = a.birthtime ? (asortDate.getMonth() + 1).twoDigits() + '/' + asortDate.getFullYear() : '--/----';
             b.sortValue = b.birthtime ? (bsortDate.getMonth() + 1).twoDigits() + '/' + bsortDate.getFullYear() : '--/----';
 
@@ -255,10 +258,11 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             b.sortValue = 'Season ' + b.season;
 
             var season = a.season - b.season;
-            if (season != 0)
+            if (season !== 0) {
               return season;
+            }
 
-            return a.episode - b.episode
+            return a.episode - b.episode;
           });
           break;
       }
@@ -276,15 +280,20 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     ];
     $scope.main.genres = [];
 
-    if (!localStorage.type)
+
+    // Set default values
+    if (!localStorage.type) {
       localStorage.type = 'All';
-
-    if (!localStorage.display)
+    }
+    if (!localStorage.display) {
       localStorage.display = 'list';
-
-    if (!localStorage.sorting)
+    }
+    if (!localStorage.sorting) {
       localStorage.sorting = 'name';
+    }
 
+
+    // Sidebar scollbar
     $scope.main.sideBarScrollBar = new GeminiScrollbar({
       forceGemini: true,
       element: document.querySelector('.sidebar #sections'),
@@ -292,12 +301,13 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     }).create();
 
 
+    // Status message
     $scope.main.messageNumber = 0;
     $scope.main.queueStatus = [];
     $scope.main.status = {
       spinner: '',
       text: ''
-    }
+    };
     $scope.main.setMessage = function(data) {
       data.id = $scope.main.messageNumber++;
 
@@ -314,7 +324,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             newStatus = data;
 
         } else {
-          if (data.removeId != undefined) {
+          if (data.removeId !== undefined) {
             for (var i = $scope.main.queueStatus.length - 1; i >= 0; i--) {
               if ($scope.main.queueStatus[i].id === data.removeId) {
                 $scope.main.queueStatus.splice(i, 1);
@@ -351,12 +361,11 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       $timeout();
 
       return data.id;
-    }
-
+    };
 
 
     $scope.main.updateDatabase = function() {
-      if ($scope.main.databaseBusy || localStorage.path2browse == undefined)
+      if ($scope.main.databaseBusy || localStorage.path2browse === undefined)
         return;
 
       $scope.main.databaseBusy = true;
@@ -373,17 +382,17 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         $scope.main.updateSideBar();
         $scope.$broadcast('updateList');
       });
-    }
+    };
 
     $scope.main.setHome = function() {
       $scope.main.home = true;
       $location.path('home');
-    }
-    $scope.main.showSidebar = function() {
+    };
+    $scope.main.unsetHome = function() {
       $scope.main.home = false;
-    }
+    };
 
-    $scope.main.initialize = function() {
+    $scope.main.setView = function() {
       db.find({
         type: {
           $ne: 'Episode'
@@ -391,7 +400,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       }).sort({
         type: 1
       }).exec(function(err, docs) {
-        if (docs.length == 0) {
+        if (docs.length === 0) {
           if (!localStorage.hasOwnProperty('path2browse')) {
             $scope.main.setHome();
             return;
@@ -399,23 +408,28 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             $location.url(localStorage.display + '/All');
           }
         } else {
-          if ('All' == localStorage.type) {
+          if ('All' === localStorage.type) {
             $location.url(localStorage.display + '/' + localStorage.type);
           } else {
             for (var d = docs.length - 1; d >= 0; d--) {
-              if ('All' == localStorage.type || docs[d].type == localStorage.type) {
+              if ('All' === localStorage.type || docs[d].type === localStorage.type) {
                 $location.url(localStorage.display + '/' + localStorage.type);
                 return;
               }
-            };
+            }
             $location.url(localStorage.display + '/Unknow');
           }
         }
       });
-    }
+    };
 
+    $scope.main.updateSideBar = function() {
+      $scope.main.updateGenres();
+      $scope.main.updateCategories();
+    };
     $scope.main.updateCategories = function() {
-      console.log('updateCategories')
+      console.log('updateCategories');
+
       db.find({
         type: {
           $ne: 'Episode'
@@ -432,7 +446,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
         for (var d = docs.length - 1; d >= 0; d--) {
           var type = docs[d].type || 'Unknow';
-          var haveDuplicate = docs[d].duplicates && docs[d].duplicates.length != 0;
+          var haveDuplicate = docs[d].duplicates && docs[d].duplicates.length !== 0;
           var isMissing = docs[d].missing;
 
           if ($scope.main.typeSections[0].indexOf(type) == -1) {
@@ -454,7 +468,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         $scope.$apply();
         $scope.main.sideBarScrollBar.update();
       });
-    }
+    };
     $scope.main.updateGenres = function(query) {
       console.log('updateGenres');
 
@@ -468,6 +482,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         });
         return;
       }
+
       db.find($scope.main.genreQuery).sort({
         genre: 1
       }).exec(function(err, docs) {
@@ -479,24 +494,18 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           }
           for (var g = genres.length - 1; g >= 0; g--) {
             if ($scope.main.genres.indexOf(genres[g]) == -1) {
-              $scope.main.genres.push(genres[g])
+              $scope.main.genres.push(genres[g]);
             }
-          };
+          }
         }
         $scope.$apply();
         $scope.main.sideBarScrollBar.update();
       });
-    }
-
-
-    $scope.main.updateSideBar = function() {
-      $scope.main.updateGenres();
-      $scope.main.updateCategories();
-    }
+    };
 
     $scope.main.displayGenre = function(genre) {
       $location.search('genre', genre);
-    }
+    };
     $scope.main.displayType = function(type) {
       if (type == 'Duplicate') {
         $location.url('duplicates/' + type);
@@ -505,10 +514,10 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
       localStorage.type = type;
       $location.url(localStorage.display + '/' + type);
-    }
+    };
 
 
-
+    // Preload posters and clean the 'posters' folder
     db.find({}, function(err, docs) {
       var ids = [];
       for (var d = docs.length - 1; d >= 0; d--)
@@ -534,22 +543,75 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     });
 
 
+    // Listerners
     win.on('close', function() {
       if ($scope.main.status.show && $scope.main.status.spinner) {
         if (confirm('The application is currentely on process.\n\nDo you want to exit the app anyway ?..'))
-          gui.App.quit()
+          gui.App.quit();
       } else
-        gui.App.quit()
+        gui.App.quit();
     });
 
-    window.addEventListener('keydown', function(e) {
-      if (e.keyCode == 116) {
+    document.body.shortcut({
+      key: "F5",
+      active: function() {
         $scope.main.updateDatabase();
       }
     });
+    document.body.shortcut({
+      key: "CtrlCmd+D",
+      active: function() {
+        win.showDevTools();
+      }
+    });
+    document.body.shortcut({
+      key: "CtrlCmd+Shift+Delete",
+      active: function() {
+        if (confirm('Do you really want to clean the app ?')) {
+          db.remove({}, {
+            multi: true
+          }, function() {
+            db.loadDatabase(function() {
+              localStorage.clear();
+              fs.readdir(postersPath, function(err, files) {
+                for (var f = files.length - 1; f >= 0; f--) {
+                  fs.unlinkSync(postersPath + '/' + files[f]);
+                }
+                gui.App.quit();
+              });
+            });
+          });
+        }
+      }
+    });
+
+    if (process.platform === 'darwin') {
+      var menu = new gui.Menu({
+        type: 'menubar'
+      });
+      if (menu.createMacBuiltin !== undefined) {
+        menu.createMacBuiltin(gui.App.manifest.name);
+      }
+
+      document.body.shortcut({
+        key: "Cmd+F",
+        active: function() {
+          win.toggleFullscreen();
+        }
+      });
+    }
+
+    if (/^win/.test(process.platform)) {
+      document.body.shortcut({
+        key: "F11",
+        active: function() {
+          win.toggleFullscreen();
+        }
+      });
+    }
 
 
-    $scope.main.initialize();
+    $scope.main.setView();
     $scope.main.updateCategories();
     $scope.main.updateDatabase();
   }])
@@ -559,12 +621,13 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     $scope.find = {};
     $scope.display = {};
 
+    // Set scroll event for dividers
     var elementsEcontainer = document.querySelector('.wrapElems #elements');
     var divider = elementsEcontainer.querySelector('.divider.static');
     if (document.querySelector('.browser').classList.contains('list')) {
       elementsEcontainer.addEventListener('scroll', function() {
         var dividers = elementsEcontainer.querySelectorAll('.divider:not(.static)');
-        if (dividers.length == 0)
+        if (dividers.length === 0)
           return;
 
         var scrollTop = this.scrollTop;
@@ -592,15 +655,16 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             }
             return;
           }
-        };
-      })
+        }
+      });
     }
     $scope.browser.resetScroll = function() {
       if (!divider)
         return;
       divider.textContent = '';
       divider.status = '';
-    }
+    };
+
 
     $scope.browser.scrollBar = new GeminiScrollbar({
       forceGemini: true,
@@ -615,7 +679,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       $timeout(function() {
         $scope.browser.scrollBar.update();
       });
-    }
+    };
     $scope.browser.display = localStorage.display;
     $scope.browser.toggleDisplay = function() {
       if (localStorage.display == 'list') {
@@ -625,13 +689,14 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         $location.url($location.url().replace('grid', 'list'));
         localStorage.display = 'list';
       }
-    }
+    };
 
     $scope.browser.sorts = {
+      season: 'Season',
       name: 'Alphabetical',
       release: 'Release date',
       birthtime: 'File date'
-    }
+    };
     $scope.browser.setSorting = function(value) {
       $scope.browser.sorting = localStorage.sorting = value;
       elementsEcontainer.scrollTop = 0;
@@ -639,19 +704,16 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       $timeout(function() {
         $scope.browser.scrollBar.update();
       });
-    }
-
-    $scope.browser.posterUrl = function(file) {
-      return filePosterPath + '/' + file;
     };
+
 
     $scope.browser.searchKD = function(e) {
       if (e.keyCode == 27) {
         e.target.blur();
         $scope.browser.searchValue = '';
-        $scope.browser.updateList()
+        $scope.browser.updateList();
       }
-    }
+    };
 
 
     $scope.browser.searchValue = '';
@@ -669,12 +731,12 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     if ($scope.browser.serie_id) $scope.browser.query.serie_id = $scope.browser.serie_id;
     switch ($scope.browser.type) {
       case 'All':
-        $scope.browser.query['type'] = {
+        $scope.browser.query.type = {
           $ne: 'Episode'
         };
         break;
       case 'Duplicate':
-        $scope.browser.query['duplicates'] = {
+        $scope.browser.query.duplicates = {
           $exists: true
         };
         $scope.browser.query['duplicates.length'] = {
@@ -682,17 +744,17 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         };
         break;
       case 'Missing':
-        $scope.browser.query['missing'] = true;
+        $scope.browser.query.missing = true;
         break;
       case 'Unknow':
-        $scope.browser.query['type'] = {
+        $scope.browser.query.type = {
           $exists: false
         };
         break;
       default:
-        $scope.browser.query['type'] = $scope.browser.type;
+        $scope.browser.query.type = $scope.browser.type;
         if ($scope.browser.type != 'Episode')
-          $scope.browser.query['missing'] = {
+          $scope.browser.query.missing = {
             $ne: true
           };
     }
@@ -707,65 +769,69 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       }
     }
 
-    if ($scope.browser.serie_id)
+    if ($scope.browser.serie_id) {
       db.findOne({
         _id: $scope.browser.serie_id
       }, function(err, doc) {
         $scope.browser.searchIn = doc.title_fr;
       });
-    else if ($scope.browser.type != 'All')
+    } else if ($scope.browser.type != 'All') {
       $scope.browser.searchIn = $scope.browser.type + 's';
-    else
+    } else {
       $scope.browser.searchIn = '';
+    }
 
 
 
     $scope.browser.startPlayer = function(filePath) {
-      if (/vlc/.test(localStorage.playerPath)) {
-        exec('"' + localStorage.playerPath + '" --fullscreen' + ' "' + filePath + '"');
-        $scope.main.setMessage({
-          spinner: true,
-          text: 'Starting the player..',
-          force: true
-        });
+      if (localStorage.playerPath) {
+        exec('"' + localStorage.playerPath + '" "' + filePath + '"');
       } else {
-        $scope.main.setMessage({
-          text: 'Player unreconized..'
-        });
+        gui.Shell.openItem(filePath);
       }
-    }
-    $scope.browser.play = function(e, id) {
+      $scope.main.setMessage({
+        spinner: true,
+        text: 'Starting the player..',
+        force: true
+      });
+    };
+    $scope.browser.play = function(e, _id) {
       e.stopPropagation();
 
       db.findOne({
-        _id: id
+        _id: _id
       }, function(err, doc) {
+        // If the file exists
         fs.stat(doc.path, function(err, file) {
           if (err) {
             var idMsg = $scope.main.setMessage({
               spinner: true,
               text: 'File missing... Updating database...'
             });
+
             tools.updateDatabase(function() {
               $scope.main.setMessage({
                 removeId: idMsg,
                 text: 'Database updated'
               });
+
+              $scope.main.updateSideBar();
+
+              // Update the display the missing or not element
               $scope.browser.updateList(function() {
-                $scope.main.updateSideBar();
                 db.findOne({
-                  _id: id
+                  _id: _id
                 }, function(err, doc) {
                   if (doc.missing) {
                     if (confirm('"' + doc.path + '" is missing. Do you want to remove it from the list ?')) {
-                      if (doc.serie_id != undefined) {
+                      if (doc.serie_id !== undefined) {
                         db.count({
                           serie_id: doc.serie_id,
                           _id: {
-                            $ne: doc._id
+                            $ne: _id
                           }
                         }, function(err, count) {
-                          if (count == 0) {
+                          if (count === 0) {
                             tools.removeEntry(doc.serie_id, function(err, count) {
                               $scope.main.updateSideBar();
                               $location.url(localStorage.display + '/All');
@@ -773,8 +839,9 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                           }
                         });
                       }
-                      tools.removeEntry(id, function(err, count) {
-                        if (count != 0) {
+
+                      tools.removeEntry(_id, function(err, count) {
+                        if (count !== 0) {
                           $scope.main.setMessage({
                             text: 'Removed'
                           });
@@ -802,16 +869,17 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             });
           }
           $scope.browser.startPlayer(doc.path);
-        })
-      })
-    }
+        });
+      });
+    };
     $scope.browser.goToEpisodes = function(e, id) {
       e.stopPropagation();
       $location.url(localStorage.display + '/Episode?serie_id=' + id + '&sorting=season');
-    }
+    };
+
     $scope.browser.dirname = function(filePath) {
       return path.dirname(filePath);
-    }
+    };
 
 
     $scope.display.show = function(e, id) {
@@ -836,20 +904,20 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         $scope.browser.status = 'display';
         $scope.$apply();
       });
-    }
+    };
     $scope.display.close = function() {
       $scope.browser.status = '';
-    }
+    };
     $scope.display.openPoster = function(id) {
       gui.Shell.openItem(postersPath + '/' + id + '.jpg');
-    }
+    };
     $scope.display.showItem = function(itemPath) {
       gui.Shell.showItemInFolder(itemPath);
-    }
+    };
 
 
     $scope.find.results = [];
-    $scope.find.search = function(e) {
+    $scope.find.searchKD = function(e) {
       if (e.keyCode == 13) {
         e.target.blur();
         var value = $scope.find.searchValue;
@@ -872,10 +940,10 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           $scope.$apply();
         });
       }
-    }
+    };
     $scope.find.range = function(num) {
       return new Array(num);
-    }
+    };
     $scope.find.updateMovie = function(data) {
       if (!data.updated) {
         $scope.main.setMessage({
@@ -955,7 +1023,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         $scope.browser.updateList();
         $scope.find.close();
       });
-    }
+    };
     $scope.find.updateSerie = function(data, callback) {
       var serie = {
         tmbd_id: data.tmbd_id,
@@ -1034,7 +1102,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           }
         });
       });
-    }
+    };
     $scope.find.updateEpisode = function(data, season_num, episode_num) {
       var referenceId = $scope.find.referenceId;
       $scope.find.updateSerie(data, function(serie_id) {
@@ -1169,7 +1237,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           }
         });
       });
-    }
+    };
 
     $scope.find.getSuggestion = function(name, succescb, errorCB) {
       name = encodeURIComponent(name);
@@ -1205,7 +1273,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         } else
           errorCB();
       });
-    }
+    };
     $scope.find.improveResult = function(index) {
       if ($scope.find.results[index].type == 'Movie') {
         $scope.find.results[index].enTmdbReq = requestAsync('http://api.themoviedb.org/3/movie/' + $scope.find.results[index].tmbd_id + '?api_key=7b5e30851a9285340e78c201c4e4ab99&language=en', function(status, tmdbInfo) {
@@ -1288,18 +1356,20 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           }
         });
       }
-    }
+    };
     $scope.find.abort = function() {
       if ($scope.find.tmdbReq) {
         $scope.find.tmdbReq.abort();
         for (var idx = $scope.find.results.length - 1; idx >= 0; idx--) {
+          if ($scope.find.results[idx].tmdbReq)
+            $scope.find.results[idx].tmdbReq.abort();
           if ($scope.find.results[idx].enTmdbReq)
             $scope.find.results[idx].enTmdbReq.abort();
           if ($scope.find.results[idx].omdbReq)
             $scope.find.results[idx].omdbReq.abort();
         }
       };
-    }
+    };
 
     $scope.find.show = function(e, elem) {
       if (elem.type == 'Serie' || elem.missing)
@@ -1330,14 +1400,15 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       else
         $scope.find.scrollBar.update();
 
+      // TODO: improve focus
       setTimeout(function() {
-        document.querySelector('.choose input').focus();
+        document.querySelector('.popup-wrapper.search input').focus();
       }, 100);
-    }
+    };
     $scope.find.close = function() {
       $scope.find.abort();
       $scope.browser.status = '';
-    }
+    };
 
 
     $scope.browser.checkType = function() {
@@ -1356,7 +1427,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           $location.url(localStorage.display + '/All');
         }
       })
-    }
+    };
 
     $scope.browser.updateList = function(callback) {
       var searchText = removeDiacritics($scope.browser.searchValue);
@@ -1380,13 +1451,13 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         if ($scope.browser.type != 'Duplicate') {
           for (var d = docs.length - 1; d >= 0; d--) {
             if (docs[d].update_small)
-              docs[d].poster = (docs[d].poster_url ? 'background-image:url(\'' + filePosterPath + '/_' + docs[d]._id + '.jpg?' + docs[d].update_small + '\')' : 'background-image:linear-gradient(#545B6C, #484D57)')
+              docs[d].poster = (docs[d].poster_url ? 'background-image:url(\'' + filePosterPath + '/_' + docs[d]._id + '.jpg?' + docs[d].update_small + '\')' : 'background-image:linear-gradient(#545B6C, #484D57)');
             else
               docs[d].poster = '';
             docs[d].name = (docs[d].episode ? 'E' + docs[d].episode.twoDigits() + ' - ' : '') + ((docs[d].title_fr || docs[d].title_en) || docs[d].clean_filename);
           }
         } else {
-          if (docs.length == 0)
+          if (docs.length === 0)
             $location.url(localStorage.display + '/' + localStorage.type);
         }
         $scope.browser.elements = docs;
@@ -1401,39 +1472,12 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         if (callback)
           callback();
       });
-    }
+    };
 
     $scope.$on('updateList', function() {
       $scope.browser.updateList();
     });
 
     $scope.browser.updateList();
-    $scope.main.showSidebar();
+    $scope.main.unsetHome();
   }]);
-
-
-document.body.blind('ctrl+d', function() {
-  win.showDevTools();
-});
-document.body.blind('ctrl+r', function() {
-  if (confirm('Do you really want to clean the app ?')) {
-    db.remove({}, {
-      multi: true
-    }, function() {
-      db.loadDatabase(function(err) {
-        localStorage.clear();
-        fs.readdir(postersPath, function(err, files) {
-          for (var f = files.length - 1; f >= 0; f--) {
-            fs.unlinkSync(postersPath + '/' + files[f]);
-          };
-          gui.App.quit();
-        })
-      });
-    });
-  }
-});
-window.addEventListener('keydown', function(e) {
-  if (e.keyCode == 122) {
-    win.toggleFullscreen();
-  }
-});
