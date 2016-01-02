@@ -15,7 +15,7 @@
 					<section>
 						<div class="title">Categories</div>
 						<div ng-class="'All' == main.type ? 'selected' : ''" ng-click="main.displayType('All')" class="link">All</div>
-						<div ng-repeat="types in main.typeSections track by $index | orderBy" class="types">
+						<div ng-repeat="types in main.typeSections track by $index" class="types">
 							<div ng-repeat="type in types | orderBy" ng-class="type == main.type ? 'selected' : ''" ng-click="main.displayType(type)" class="link">{{type}}s</div>
 						</div>
 					</section>

@@ -19,7 +19,7 @@ var fileUrl = function(str) {
 var filePosterPath = fileUrl(postersPath);
 
 
-
+win.showDevTools();
 
 var Datastore = require('nedb'),
   db = new Datastore({
@@ -691,16 +691,23 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       }
     };
 
-    $scope.browser.sorts = {
-      season: 'Season',
-      name: 'Alphabetical',
-      release: 'Release date',
-      birthtime: 'File date'
-    };
-    $scope.browser.setSorting = function(value) {
-      $scope.browser.sorting = localStorage.sorting = value;
+    $scope.browser.sorts = [{
+      type: 'season',
+      value: 'Season'
+    },{
+      type: 'name',
+      value: 'Alphabetical'
+    },{
+      type: 'release',
+      value: 'Release date'
+    },{
+      type: 'birthtime',
+      value: 'File date'
+    }];
+    $scope.browser.setSorting = function(sort) {
+      $scope.browser.sorting = localStorage.sorting = sort.type;
       elementsEcontainer.scrollTop = 0;
-      $scope.browser.sortingName = $scope.browser.sorts[$scope.browser.sorting];
+      $scope.browser.sortingName = sort.value;
       $timeout(function() {
         $scope.browser.scrollBar.update();
       });
@@ -718,7 +725,12 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
     $scope.browser.searchValue = '';
     $scope.browser.sorting = $location.search().sorting || localStorage.sorting;
-    $scope.browser.sortingName = $scope.browser.sorts[$scope.browser.sorting];
+    for (var s = $scope.browser.sorts.length - 1; s >= 0; s--) {
+      if ($scope.browser.sorts[s].type === $scope.browser.sorting) {
+        $scope.browser.sortingName = $scope.browser.sorts[s].value;
+        break;
+      }
+    }
     $scope.browser.type = $routeParams.type;
     $scope.browser.genre = $location.search().genre || 'All';
     $scope.browser.serie_id = $location.search().serie_id;
