@@ -232,23 +232,21 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
         case 'release':
           filtered.sort(function(a, b) {
-            var asortDate = a.date || a.date_first || 0;
-            var bsortDate = b.date || b.date_first || 0;
-            a.sortValue = asortDate.getFullYear();
-            b.sortValue = asortDate.getFullYear();
+            var asortDate = a.date || a.date_first;
+            var bsortDate = b.date || b.date_first;
+            a.sortValue = asortDate ? asortDate.getFullYear() : '----';
+            b.sortValue = asortDate ? asortDate.getFullYear() : '----';
 
-            return bsortDate - asortDate;
+            return (bsortDate || 0) - (asortDate || 0);
           });
           break;
 
         case 'birthtime':
           filtered.sort(function(a, b) {
-            asortDate = (a.birthtime || 0);
-            bsortDate = (b.birthtime || 0);
-            a.sortValue = a.birthtime ? (asortDate.getMonth() + 1).twoDigits() + '/' + asortDate.getFullYear() : '--/----';
-            b.sortValue = b.birthtime ? (bsortDate.getMonth() + 1).twoDigits() + '/' + bsortDate.getFullYear() : '--/----';
+            a.sortValue = a.birthtime ? (a.birthtime.getMonth() + 1).twoDigits() + '/' + a.birthtime.getFullYear() : '--/----';
+            b.sortValue = b.birthtime ? (b.birthtime.getMonth() + 1).twoDigits() + '/' + b.birthtime.getFullYear() : '--/----';
 
-            return bsortDate - asortDate;
+            return (b.birthtime || 0) - (a.birthtime || 0);
           });
           break;
 
