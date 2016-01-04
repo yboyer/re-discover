@@ -19,10 +19,12 @@ function browseDirectories(paths, cb) {
   var files = [];
 
   var handler = function(err, f) {
-    if (!err)
+    if (!err) {
       files = f.concat(files);
-    if (--total === 0)
+    }
+    if (--total === 0) {
       cb(files);
+    }
   };
 
   for (var p = paths.length - 1; p >= 0; p--) {
@@ -33,20 +35,28 @@ function browseDirectories(paths, cb) {
 function browseDirectory(dir, done) {
   var files = [];
   fs.readdir(dir, function(err, list) {
-    if (err) return done(err);
+    if (err) {
+      return done(err);
+    }
     var pending = list.length;
-    if (!pending) return done(null, cleanFiles(files));
+    if (!pending) {
+      return done(null, cleanFiles(files));
+    }
     list.forEach(function(file) {
       file = path.resolve(dir, file);
       fs.stat(file, function(err, stat) {
         if (stat && stat.isDirectory()) {
           browseDirectory(file, function(err, res) {
             files = files.concat(res);
-            if (!--pending) done(null, cleanFiles(files));
+            if (!--pending) {
+              done(null, cleanFiles(files));
+            }
           });
         } else {
           files.push(file);
-          if (!--pending) done(null, cleanFiles(files));
+          if (!--pending) {
+            done(null, cleanFiles(files));
+          }
         }
       });
     });
@@ -56,9 +66,11 @@ function browseDirectory(dir, done) {
 function cleanFiles(files) {
   var res = [],
     exts = JSON.parse(localStorage.extentions);
-  for (var i = 0; i < files.length; i++)
-    if (exts.indexOf(path.extname(files[i]).toLowerCase().slice(1)) != -1)
+  for (var i = 0; i < files.length; i++) {
+    if (exts.indexOf(path.extname(files[i]).toLowerCase().slice(1)) != -1) {
       res.push(files[i]);
+    }
+  }
   return res;
 }
 
@@ -202,8 +214,9 @@ function removeDiacritics(str) {
 
 
 function readableBytes(size) {
-  if (size < 1024)
+  if (size < 1024) {
     return size + ' Mo';
+  }
   return (size / 1024).toFixed(2) + ' Go';
 }
 
@@ -214,16 +227,19 @@ String.prototype.capitalize = function() {
 };
 
 Number.prototype.twoDigits = function() {
-  if (this.length > 2)
+  if (this.length > 2) {
     return;
+  }
   return ('0' + this).slice(-2);
 };
 
 Object.prototype.clone = function() {
   var copy = this.constructor();
-  for (var attr in this)
-    if (this.hasOwnProperty(attr))
+  for (var attr in this) {
+    if (this.hasOwnProperty(attr)) {
       copy[attr] = this[attr];
+    }
+  }
   return copy;
 };
 
@@ -295,38 +311,64 @@ Object.prototype.clone = function() {
   var ctrlCmd = (/Mac/.test(navigator.platform) ? 'meta' : 'ctrl') + 'Key';
 
   HTMLElement.prototype.shortcut = function(options) {
-    if (typeof options != 'object')
+    if (typeof options != 'object') {
       throw new TypeError('Invalid options.');
+    }
 
-    if (!options.hasOwnProperty('key'))
+    if (!options.hasOwnProperty('key')) {
       throw new TypeError("Shortcut requires 'key' to specify key combinations.");
+    }
 
-    if (!options.hasOwnProperty('active'))
+    if (!options.hasOwnProperty('active')) {
       throw new TypeError("Shortcut requires 'active' to specify key combinations.");
+    }
 
     this.addEventListener(options.action || 'keydown', function(e) {
       var keyCode = e.keyCode || e.which;
       options.keys = options.key.split('+');
 
-      for (var k = options.keys.length - 1; k >= 0; k--) {
+      var pressed = {
+        ctrl: e.ctrlKey,
+        shift: e.shiftKey,
+        alt: e.altKey,
+        cmd: e.metaKey
+      };
+      var wanted = {
+        ctrl: false,
+        shift: false,
+        alt: false,
+        cmd: false
+      };
+
+      for (var k = 0, kl = options.keys.length; k < kl; k++) {
         var key = options.keys[k].toLowerCase();
 
-        if (key == 'ctrlcmd' && !e[ctrlCmd])
+        if (key == 'ctrlcmd' && e[ctrlCmd]) {
+          if (ctrlCmd === 'ctrlKey') {
+            wanted.ctrl = true;
+          } else {
+            wanted.cmd = true;
+          }
+        } else if (key == 'cmd' && e.metaKey) {
+          wanted.cmd = true;
+        } else if (key == 'ctrl' && e.ctrlKey) {
+          wanted.ctrl = true;
+        } else if (key == 'shift' && e.shiftKey) {
+          wanted.shift = true;
+        } else if (key == 'alt' && e.altKey) {
+          wanted.alt = true;
+        } else if (specialkeys[key] != keyCode && String.fromCharCode(keyCode).toLowerCase() != key) {
           return;
-        if (key == 'cmd' && !e.metaKey)
-          return;
-        if (key == 'ctrl' && !e.ctrlKey)
-          return;
-        if (key == 'shift' && !e.shiftKey)
-          return;
-        if (key == 'alt' && !e.altKey)
-          return;
-
-        if (specialkeys[key] != keyCode && String.fromCharCode(keyCode).toLowerCase() != key)
-          return;
-
-        options.active();
+        }
       }
+
+      for (var key in pressed) {
+        if (pressed.hasOwnProperty(key) && wanted.hasOwnProperty(key) && pressed[key] !== wanted[key]) {
+          return;
+        }
+      }
+
+      options.active();
     });
   };
 })(window, document);

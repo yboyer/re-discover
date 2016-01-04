@@ -40,10 +40,10 @@ var src = {
 var jshintrc = {
   browser: true,
   node: true,
-  unused: true,
+  // unused: true,
   undef: true,
-  // curly: true,
-  latedef: true,
+  curly: true,
+  latedef: 'nofunc',
   noarg: true,
   boss: true,
   eqnull: true
