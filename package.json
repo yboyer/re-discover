@@ -1,7 +1,7 @@
 {
   "name": "(re)discover",
   "description": "",
-  "version": "0.0.5",
+  "version": "0.2.10",
   "scripts": {
     "postinstall": "(cd src && npm install)",
     "start": "nw core"
@@ -9,6 +9,7 @@
   "devDependencies": {
     "del": "^2.2.0",
     "gulp": "^3.9.0",
+    "gulp-bump": "^1.0.0",
     "gulp-cached": "^1.1.0",
     "gulp-concat": "^2.6.0",
     "gulp-debug": "^2.1.2",

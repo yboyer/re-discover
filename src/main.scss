@@ -622,13 +622,13 @@ header {
     border-radius: 0;
   }
 
-  &.list, &.grid {
+  & .wrapElems {
+    overflow: hidden;
+    border-radius: 4px 0 0 4px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
 
-    .wrapElems {
-      overflow: hidden;
-      border-radius: 4px 0 0 4px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
+  &.list, &.grid {
     .elem .poster {
       .overlay {
         opacity: 0;
@@ -932,9 +932,12 @@ header {
   }
 
   &.duplicates {
-    background-color: #2B2B2B;
     color: rgba(255, 255, 255, 0.5);
     font-size: 14px;
+
+    #elements {
+      background-color: #2B2B2B;
+    }
 
     .elem {
       padding: 10px 20px;

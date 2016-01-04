@@ -1,5 +1,6 @@
 'use strict';
 
+var bump = require('gulp-bump');
 var rename = require("gulp-rename");
 var debug = require('gulp-debug');
 var NwBuilder = require('nw-builder');
@@ -29,6 +30,7 @@ var nwConf = {
 };
 
 var src = {
+  packages: ['package.json', 'src/package.json'],
   js: ['src/app/tools.js', 'src/app/**/*.js'],
   scss: ['src/**/*.scss', '!src/node_modules/**/*'],
   tpl: {
@@ -105,6 +107,12 @@ gulp.task('jshint', function() {
   gulp.src(src.js)
     .pipe(jshint(jshintrc))
     .pipe(jshint.reporter('jshint-stylish'));
+});
+
+gulp.task('bump', function() {
+  gulp.src(src.packages, {base: './'})
+    .pipe(bump())
+    .pipe(gulp.dest('./'));
 });
 
 gulp.task('copy', function() {

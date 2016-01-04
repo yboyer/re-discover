@@ -3,10 +3,10 @@
   "author": "Yoann Boyer <contact@yoannboyer.com>",
   "name": "(Re)Discover",
   "description": "",
-  "version": "1.0.0",
+  "version": "0.2.10",
   "main": "index.html",
   "window": {
-  	"icon": "assets/icon.png",
+    "icon": "assets/icon.png",
     "toolbar": false,
     "width": 1250,
     "min_width": 300,
