@@ -608,11 +608,11 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     $scope.display = {};
 
     // Set scroll event for dividers
-    var elementsEcontainer = document.querySelector('.wrapElems #elements');
-    var divider = elementsEcontainer.querySelector('.divider.static');
+    var elementsContainer = document.querySelector('.wrapElems #elements');
+    var divider = elementsContainer.querySelector('.divider.static');
     if (document.querySelector('.browser').classList.contains('list')) {
-      elementsEcontainer.addEventListener('scroll', function() {
-        var dividers = elementsEcontainer.querySelectorAll('.divider:not(.static)');
+      elementsContainer.addEventListener('scroll', function() {
+        var dividers = elementsContainer.querySelectorAll('.divider:not(.static)');
         if (dividers.length === 0)
           return;
 
@@ -649,6 +649,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         return;
       divider.textContent = '';
       divider.status = '';
+      elementsContainer.scrollTop = 0;
     };
 
 
@@ -692,7 +693,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     }];
     $scope.browser.setSorting = function(sort) {
       $scope.browser.sorting = localStorage.sorting = sort.type;
-      elementsEcontainer.scrollTop = 0;
+      elementsContainer.scrollTop = 0;
       $scope.browser.sortingName = sort.value;
       $timeout(function() {
         $scope.browser.scrollBar.update();

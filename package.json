@@ -1,7 +1,7 @@
 {
   "name": "(re)discover",
   "description": "",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "scripts": {
     "postinstall": "(cd src && npm install)",
     "start": "nw core"

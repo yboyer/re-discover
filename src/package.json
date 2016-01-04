@@ -3,7 +3,7 @@
   "author": "Yoann Boyer <contact@yoannboyer.com>",
   "name": "(Re)Discover",
   "description": "",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "main": "index.html",
   "window": {
     "icon": "assets/icon.png",
