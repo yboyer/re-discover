@@ -279,18 +279,6 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     $scope.main.genres = [];
 
 
-    // Set default values
-    if (!localStorage.type) {
-      localStorage.type = 'All';
-    }
-    if (!localStorage.display) {
-      localStorage.display = 'list';
-    }
-    if (!localStorage.sorting) {
-      localStorage.sorting = 'name';
-    }
-
-
     // Sidebar scollbar
     $scope.main.sideBarScrollBar = new GeminiScrollbar({
       forceGemini: true,

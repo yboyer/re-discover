@@ -8,8 +8,20 @@ angular.module('home', ['ngRoute'])
   }])
   .controller('HomeCtrl', ['$scope', '$location', '$timeout', 'tools', function($scope, $location, $timeout, tools) {
     console.log('HomeCtrl');
-
     $scope.home = this;
+
+
+    // Set default values
+    if (!localStorage.type) {
+      localStorage.type = 'Unknow';
+    }
+    if (!localStorage.display) {
+      localStorage.display = 'list';
+    }
+    if (!localStorage.sorting) {
+      localStorage.sorting = 'name';
+    }
+
 
     var exts = JSON.parse(localStorage.extentions || '[]');
     $scope.home.checkboxes = [{
@@ -93,7 +105,7 @@ angular.module('home', ['ngRoute'])
       var browser = document.createElement('input');
       browser.setAttribute('type', 'file');
       browser.setAttribute('accept', '.exe,.app');
-      browser.val = value;
+      browser.val = value || '';
       browser.addEventListener('change', function() {
         this.val = this.value.replace(/\\/g, '/');
         $scope.home.updateSubmitStatus();
@@ -104,7 +116,7 @@ angular.module('home', ['ngRoute'])
       return browser;
     };
     $scope.home.playerPath = $scope.home.getFileBrowser(localStorage.playerPath);
-    $scope.home.findVlc = function() {
+    $scope.home.findPlayer = function() {
       $scope.home.playerPath.show();
     };
 
@@ -112,10 +124,6 @@ angular.module('home', ['ngRoute'])
 
     $scope.home.updateSubmitStatus = function() {
       if ($scope.home.directories.length == 1) {
-        return $scope.home.setSubmitStatus(false);
-      }
-
-      if (!$scope.home.playerPath.val) {
         return $scope.home.setSubmitStatus(false);
       }
 
@@ -141,8 +149,8 @@ angular.module('home', ['ngRoute'])
           dirs.push($scope.home.directories[d].val.replace(/\\/g, '/'));
         }
 
-        for (var c = $scope.home.checkboxes.length - 1; c >= 0; c--){
-          if ($scope.home.checkboxes[c].checked){
+        for (var c = $scope.home.checkboxes.length - 1; c >= 0; c--) {
+          if ($scope.home.checkboxes[c].checked) {
             cbs.push($scope.home.checkboxes[c].ext);
           }
         }
@@ -166,7 +174,7 @@ angular.module('home', ['ngRoute'])
 
           $scope.main.updateCategories();
 
-          $location.path(localStorage.display + '/' + (localStorage.type || 'Unknow'));
+          $location.path(localStorage.display + '/' + localStorage.type);
         });
       }
     };
