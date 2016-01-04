@@ -180,7 +180,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                 };
               }
 
-              if (angular.equals(update.$set, dbFilenames[filename])) {
+              if (update.$set !== undefined && angular.equals(update.$set, dbFilenames[filename])) {
                 if (--total === 0) {
                   tools._updateMissings(paths, callback);
                 }
