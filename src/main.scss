@@ -5,85 +5,41 @@
 $phoneLike: "screen and (max-width: 470px)";
 
 @mixin lightScrollbar {
-  .gm-scrollbar {
-    &.-vertical{
-      &:hover, &:active {
-        background-color: rgba(255,255,255,0.15);
+  .ps-scrollbar-y-rail {
+    .ps-scrollbar-y {
+      background-color: rgba(255,255,255,0.25);
+    }
+    &:hover, &:active {
+      background-color: rgba(255,255,255,0.15);
 
-        .thumb {
-          background-color: rgba(255,255,255,0.35);
+      .ps-scrollbar-y {
+        background-color: rgba(255,255,255,0.35);
 
-          &:hover, &:active {
-            background-color: rgba(255,255,255,0.45);
-          }
+        &:hover, &:active {
+          background-color: rgba(255,255,255,0.45);
         }
-      }
-      .thumb {
-        background-color: rgba(255,255,255,0.25);
       }
     }
   }
 }
 
 @mixin darkScrollbar {
-  .gm-scrollbar {
-    &.-vertical{
-      &:hover, &:active {
-        background-color: rgba(0,0,0,0.15);
+  .ps-scrollbar-y-rail {
+    .ps-scrollbar-y {
+      background-color: rgba(0,0,0,0.25);
+    }
+    &:hover, &:active {
+      background-color: rgba(0,0,0,0.15);
 
-        .thumb {
-          background-color: rgba(0,0,0,0.35);
+      .ps-scrollbar-y {
+        background-color: rgba(0,0,0,0.35);
 
-          &:hover, &:active {
-            background-color: rgba(0,0,0,0.45);
-          }
+        &:hover, &:active {
+          background-color: rgba(0,0,0,0.45);
         }
       }
-      .thumb {
-        background-color: rgba(0,0,0,0.25);
-      }
     }
   }
-}
-
-.gm-scrollbar-container {
-  .gm-scroll-view {
-    width: 100% !important;
-    height: 100% !important;
-  }
-
-  .gm-scrollbar {
-    &.-vertical{
-      top: 5px;
-      bottom: 5px;
-      right: 5px;
-      transition-duration: 150ms;
-      transition-property: background-color, width, border-radius;
-
-      &:hover, &:active {
-        background-color: rgba(0,0,0,0);
-        width: 8px;
-        border-radius: 4px;
-
-        .thumb {
-          background-color: rgba(0,0,0,0);
-
-          &:hover, &:active {
-            background-color: rgba(0,0,0,0);
-          }
-        }
-      }
-
-      .thumb {
-        background-color: rgba(0,0,0,0);
-        transition: inherit;
-      }
-    }
-    &.-horizontal{
-      display: none;
-    }
-  }
-
 }
 
 .highlight {
@@ -331,6 +287,7 @@ header {
   }
 
   #sections {
+    position: relative;
     height: calc(100% - 62px);
   }
 
@@ -391,18 +348,18 @@ header {
     display: none;
   }
 
+  .ps-scrollbar-y-rail {
+    .ps-scrollbar-y {
+      background-color: rgba(255,255,255,0.25);
+    }
+    &:hover, &:active {
+      background-color: rgba(255,255,255,0.05);
 
-  .gm-scrollbar {
-    &.-vertical{
-      &:hover, &:active {
-        background-color: rgba(255,255,255,0.05);
+      .ps-scrollbar-y {
+        background-color: rgba(255,255,255,0.25);
 
-        .thumb {
-          background-color: rgba(255,255,255,0.25);
-
-          &:hover, &:active {
-            background-color: rgba(255,255,255,0.35);
-          }
+        &:hover, &:active {
+          background-color: rgba(255,255,255,0.35);
         }
       }
     }
@@ -550,11 +507,11 @@ header {
 
       .item {
         font-style: italic;
-        margin-left: 5px;
         cursor: pointer;
-        display: table;
         margin-bottom: 2px;
         font-weight: 600;
+        vertical-align: middle;
+        display: inline-block;
         transition: background-color 200ms;
         padding: 0 4px;
         border-radius: 2px;
@@ -565,6 +522,24 @@ header {
         }
       }
 
+      .remove-item {
+        cursor: pointer;
+        background-image: url(assets/icons/remove.svg);
+        background-size: 100% 100%;
+        margin: 0 5px;
+        width: 13px;
+        height: 13px;
+        display: inline-block;
+        vertical-align: middle;
+        margin-bottom: 2px;
+        opacity: 0.8;
+        transition: opacity 200ms;
+
+        &:hover{
+          transition-duration: 0ms;
+          opacity: 1;
+        }
+      }
 
       .checkboxes {
         div {
@@ -624,8 +599,15 @@ header {
 
   & .wrapElems {
     overflow: hidden;
+    position: relative;
+    width: 100%;
+    height: 100%;
     border-radius: 4px 0 0 4px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+    #elements {
+      min-height: 100%;
+    }
   }
 
   &.list, &.grid {
@@ -669,7 +651,7 @@ header {
     .nothing {
       font-style: italic;
       letter-spacing: 0.5px;
-      margin-top: 50px;
+      padding-top: 50px;
       text-align: center;
       color: rgba(255, 255, 255, 0.5);
     }
@@ -852,7 +834,7 @@ header {
     .nothing {
       font-style: italic;
       letter-spacing: 0.5px;
-      margin-top: 2px;
+      padding-top: 2px;
       color: rgba(19, 22, 29, 0.6);
       font-weight: 600;
     }
@@ -1061,11 +1043,12 @@ header {
           overflow: auto;
           height: calc(100% - 105px);
           min-height: 190px;
+          position: relative;
 
           .nothingFound {
             font-style: italic;
             letter-spacing: 0.5px;
-            margin-top: 30px;
+            padding-top: 30px;
             text-align: center;
             color: rgba(255, 255, 255, 0.5);
             font-weight: 400;

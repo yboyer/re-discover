@@ -19,7 +19,7 @@ var fileUrl = function(str) {
 var filePosterPath = fileUrl(postersPath);
 
 
-win.showDevTools();
+// win.showDevTools();
 
 var Datastore = require('nedb'),
   db = new Datastore({
@@ -27,6 +27,10 @@ var Datastore = require('nedb'),
     autoload: true
   });
 
+var psConfig = {
+  minScrollbarLength: 20,
+  suppressScrollX: true
+};
 
 angular.module('app', ['ngRoute', 'home', 'templates'])
   .config(['$routeProvider', function($routeProvider) {
@@ -103,7 +107,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           }
         });
       },
-      updateDatabase: function(callback) {
+      updateDatabase: function(callback, step) {
         var path2browse = JSON.parse(localStorage.path2browse || '[]');
         var tools = this;
 
@@ -202,7 +206,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
               }
             }
           });
-        });
+        }, step);
       },
       removeEntry: function(id, callback) {
         fs.unlink(postersPath + '/' + id + '.jpg', function() {});
@@ -220,11 +224,12 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         filtered.push(item);
       });
 
+      console.time('Sort ' + param);
       switch (param) {
         case 'name':
           filtered.sort(function(a, b) {
-            a.sortValue = removeDiacritics(a.name.charAt(0)).toUpperCase();
-            b.sortValue = removeDiacritics(b.name.charAt(0)).toUpperCase();
+            a.sortValue = a.name.charAt(0).removeDiacritics().toUpperCase();
+            b.sortValue = b.name.charAt(0).removeDiacritics().toUpperCase();
 
             return a.name.localeCompare(b.name);
           });
@@ -264,6 +269,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           });
           break;
       }
+      console.timeEnd('Sort ' + param);
 
       return filtered;
     };
@@ -279,13 +285,14 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     $scope.main.genres = [];
 
 
-    // Sidebar scollbar
-    $scope.main.sideBarScrollBar = new GeminiScrollbar({
-      forceGemini: true,
-      element: document.querySelector('.sidebar #sections'),
-      createElements: false
-    }).create();
-
+    // Sidebar
+    $scope.sidebar = {};
+    $scope.sidebar.element = document.querySelector('.sidebar #sections');
+    $scope.sidebar.updateScrollbar = function() {
+      Ps.update($scope.sidebar.element);
+    };
+    Ps.initialize($scope.sidebar.element, psConfig);
+    win.on('resize', $scope.sidebar.updateScrollbar);
 
     // Status message
     $scope.main.messageNumber = 0;
@@ -303,11 +310,13 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
       if ($scope.main.status.show && $scope.main.status.spinner && !$scope.main.status.force) {
         if (data.removeId == $scope.main.status.id) {
-          if (!data.spinner)
+          if (!data.spinner) {
             newStatus = $scope.main.queueStatus.pop();
+          }
 
-          if (!newStatus)
+          if (!newStatus) {
             newStatus = data;
+          }
 
         } else {
           if (data.removeId !== undefined) {
@@ -351,14 +360,14 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
 
     $scope.main.updateDatabase = function() {
-      if ($scope.main.databaseBusy || localStorage.path2browse === undefined)
+      if ($scope.main.databaseBusy || localStorage.path2browse === undefined) {
         return;
+      }
+
+      var dirs = 0;
 
       $scope.main.databaseBusy = true;
-      var idMsg = $scope.main.setMessage({
-        spinner: true,
-        text: 'Updating the database...'
-      });
+      var idMsg;
       tools.updateDatabase(function() {
         $scope.main.databaseBusy = false;
         $scope.main.setMessage({
@@ -367,6 +376,12 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         });
         $scope.main.updateSideBar();
         $scope.$broadcast('updateList');
+      }, function() {
+        idMsg = $scope.main.setMessage({
+          removeId: idMsg,
+          spinner: true,
+          text: 'Updating the database... (Browsing folder n°' + (++dirs) + ')'
+        });
       });
     };
 
@@ -414,7 +429,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       $scope.main.updateCategories();
     };
     $scope.main.updateCategories = function() {
-      console.log('updateCategories');
+      console.time('updateCategories');
 
       db.find({
         type: {
@@ -447,16 +462,18 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             $scope.main.typeSections[1].push('Missing');
           }
 
-          if (!docs[d].type && !haveDuplicate)
+          if (!docs[d].type && !haveDuplicate) {
             break;
+          }
         }
 
         $scope.$apply();
-        $scope.main.sideBarScrollBar.update();
+        $scope.sidebar.updateScrollbar();
+        console.timeEnd('updateCategories');
       });
     };
     $scope.main.updateGenres = function(query) {
-      console.log('updateGenres');
+      console.time('updateGenres');
 
       if (query)
         $scope.main.genreQuery = query;
@@ -464,7 +481,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       if (['Unknow', 'Duplicate'].indexOf($scope.main.type) != -1) {
         $scope.main.genres.length = 0;
         $timeout(function() {
-          $scope.main.sideBarScrollBar.update();
+          $scope.sidebar.updateScrollbar();
         });
         return;
       }
@@ -485,7 +502,8 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           }
         }
         $scope.$apply();
-        $scope.main.sideBarScrollBar.update();
+        console.timeEnd('updateGenres');
+        $scope.sidebar.updateScrollbar();
       });
     };
 
@@ -607,8 +625,9 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     $scope.find = {};
     $scope.display = {};
 
+
     // Set scroll event for dividers
-    var elementsContainer = document.querySelector('.wrapElems #elements');
+    var elementsContainer = document.querySelector('.wrapElems');
     var divider = elementsContainer.querySelector('.divider.static');
     if (document.querySelector('.browser').classList.contains('list')) {
       elementsContainer.addEventListener('scroll', function() {
@@ -653,18 +672,42 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     };
 
 
-    $scope.browser.scrollBar = new GeminiScrollbar({
-      forceGemini: true,
-      element: document.querySelector('.browser .wrapElems'),
-      createElements: false
-    }).create();
+    // Scrollbar
+    Ps.initialize(elementsContainer, psConfig);
+    $scope.browser.updateScrollbar = function() {
+      $scope.browser.checkBrowserElements();
+      Ps.update(elementsContainer);
+    };
+    win.on('resize', $scope.browser.updateScrollbar);
+
+    // see-more
+    $scope.main.displayed = $scope.browser.limitElements = $scope.browser.elementsPerPages = 100;
+    $scope.browser.checkBrowserElements = function() {
+      while (!$scope.browser.needStop() && elementsContainer.scrollTop + elementsContainer.offsetHeight >= elementsContainer.scrollHeight - 500) {
+        $scope.browser.nextElements();
+        $scope.browser.updateScrollbar();
+      }
+    };
+    $scope.browser.nextElements = function() {
+      console.time('increaseElementNumber');
+      $scope.$apply(function() {
+        $scope.browser.limitElements += $scope.browser.elementsPerPages;
+        $scope.main.displayed = $scope.browser.limitElements;
+      });
+      console.timeEnd('increaseElementNumber');
+    };
+    $scope.browser.needStop = function() {
+      var nbElem = $scope.browser.elements ? $scope.browser.elements.length : 0;
+      return nbElem <= $scope.browser.limitElements;
+    };
+    elementsContainer.addEventListener('scroll', $scope.browser.checkBrowserElements);
 
 
     $scope.browser.disableFull = JSON.parse(localStorage.disableFull || 'false');
     $scope.browser.toggleFull = function() {
       $scope.browser.disableFull = localStorage.disableFull = !$scope.browser.disableFull;
       $timeout(function() {
-        $scope.browser.scrollBar.update();
+        $scope.browser.updateScrollbar();
       });
     };
     $scope.browser.display = localStorage.display;
@@ -681,13 +724,13 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     $scope.browser.sorts = [{
       type: 'season',
       value: 'Season'
-    },{
+    }, {
       type: 'name',
       value: 'Alphabetical'
-    },{
+    }, {
       type: 'release',
       value: 'Release date'
-    },{
+    }, {
       type: 'birthtime',
       value: 'File date'
     }];
@@ -696,7 +739,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       elementsContainer.scrollTop = 0;
       $scope.browser.sortingName = sort.value;
       $timeout(function() {
-        $scope.browser.scrollBar.update();
+        $scope.browser.updateScrollbar();
       });
     };
 
@@ -916,6 +959,12 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
 
     $scope.find.results = [];
+    $scope.find.updateScrollbar = function() {
+      if ($scope.find.scrollElement) {
+        Ps.update($scope.find.scrollElement);
+      }
+    };
+    win.on('resize', $scope.find.updateScrollbar);
     $scope.find.searchKD = function(e) {
       if (e.keyCode == 13) {
         e.target.blur();
@@ -932,7 +981,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           $scope.$apply();
 
           document.querySelector('.choose').style.height = document.querySelector('.choose #results').offsetHeight + 105 + 'px';
-          $scope.find.scrollBar.update();
+          $scope.find.updateScrollbar();
         }, function() {
           $scope.find.searchInfo = 'Error when searching for “' + value + '”... Maybe the internet connection';
           $scope.find.spinner = '';
@@ -1040,7 +1089,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         poster_url: data.poster,
         seasons: [],
         updated: true
-      }
+      };
       for (var s = 0, sl = data.seasons.length; s < sl; s++) {
         serie.seasons.push({
           tmbd_id: data.seasons[s].id,
@@ -1048,7 +1097,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           episode_count: data.seasons[s].episode_count,
           season_number: data.seasons[s].season_number
         });
-      };
+      }
 
       db.update({
         tmbd_id: serie.tmbd_id
@@ -1122,12 +1171,12 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
               $ne: referenceId
             }
           }, function(err, count) {
-            if (count == 0) {
+            if (count === 0) {
               tools.removeEntry(doc.serie_id, function(err, count) {
                 $scope.main.updateSideBar();
               });
             }
-          })
+          });
         });
 
         data.req = requestAsync('http://api.themoviedb.org/3/tv/' + data.tmbd_id + '/season/' + season_num + '/episode/' + episode_num + '?api_key=7b5e30851a9285340e78c201c4e4ab99&language=fr', function(status, tmdbInfo) {
@@ -1266,7 +1315,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                 runtime: 'N/A'
               }) - 1);
             }
-          };
+          }
 
           succescb();
         } else
@@ -1304,7 +1353,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                 }
                 $scope.find.results[index].updated = true;
                 $scope.$apply();
-                $scope.find.scrollBar.update();
+                $scope.find.updateScrollbar();
               }
             });
           }
@@ -1317,8 +1366,9 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             $scope.find.results[index].seasons = tmdbInfo.seasons;
             $scope.find.results[index].date_first = new Date(tmdbInfo.first_air_date);
             $scope.find.results[index].date_last = new Date(tmdbInfo.last_air_date);
-            for (var s = $scope.find.results[index].seasons.length - 1; s >= 0; s--)
-              $scope.find.results[index].seasons[s].air_date = new Date($scope.find.results[index].seasons[s].air_date)
+            for (var s = $scope.find.results[index].seasons.length - 1; s >= 0; s--) {
+              $scope.find.results[index].seasons[s].air_date = new Date($scope.find.results[index].seasons[s].air_date);
+            }
 
 
             $scope.find.results[index].tmdbReq = requestAsync('http://api.themoviedb.org/3/tv/' + $scope.find.results[index].tmbd_id + '/external_ids?api_key=7b5e30851a9285340e78c201c4e4ab99&language=en', function(status, tmdbInfo) {
@@ -1367,7 +1417,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           if ($scope.find.results[idx].omdbReq)
             $scope.find.results[idx].omdbReq.abort();
         }
-      };
+      }
     };
 
     $scope.find.show = function(e, elem) {
@@ -1382,7 +1432,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       $scope.find.searchPlaceholder = value;
 
       $scope.find.spinner = '';
-      $scope.find.searchInfo = value;
+      $scope.find.searchInfo = 'Entrer the title and type enter';
 
       $scope.find.referenceId = elem._id;
       $scope.find.results.length = 0;
@@ -1391,13 +1441,12 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       document.querySelector('.choose').style.height = '';
       $scope.browser.status = 'searching';
 
-      if (!$scope.find.scrollBar)
-        $scope.find.scrollBar = new GeminiScrollbar({
-          forceGemini: true,
-          element: document.querySelector('.popup-wrapper.search #results')
-        }).create();
-      else
-        $scope.find.scrollBar.update();
+      if ($scope.find.initialized !== undefined)
+        $scope.find.updateScrollbar();
+      else {
+        $scope.find.scrollElement = document.querySelector('.popup-wrapper.search #results');
+        Ps.initialize($scope.find.scrollElement, psConfig);
+      }
 
       // TODO: improve focus
       setTimeout(function() {
@@ -1425,23 +1474,28 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         if (doc == null) {
           $location.url(localStorage.display + '/All');
         }
-      })
+      });
     };
 
-    $scope.browser.updateList = function(callback) {
-      var searchText = removeDiacritics($scope.browser.searchValue);
-      if (searchText != '') {
-        // var reg = '.*';
-        // for (var t = 0, lt = searchText.length; t < lt; t++)
-        // 	reg += searchText[t].toLowerCase() + '.*';
-        var reg = searchText;
-        reg = new RegExp(reg, 'i');
+    $scope.browser.updateList = function(options) {
+      console.time('List updated');
+
+      if (options === undefined) {
+        options = {
+          apply: true
+        };
+      }
+
+      var searchText = $scope.browser.searchValue.removeDiacritics();
+      if (searchText !== '') {
+        var reg = new RegExp(searchText, 'i');
 
         $scope.browser.query.$where = function() {
-          if (!this.title_fr && !this.title_en && !this.title)
-            return reg.test(removeDiacritics(this.clean_filename));
-          return reg.test(removeDiacritics(this.title_fr)) || reg.test(removeDiacritics(this.title_en)) || reg.test(removeDiacritics(this.title));
-        }
+          if (!this.title_fr && !this.title_en && !this.title) {
+            return reg.test(this.clean_filename.removeDiacritics());
+          }
+          return reg.test(this.title_fr.removeDiacritics()) || reg.test(this.title_en.removeDiacritics()) || reg.test(this.title.removeDiacritics());
+        };
       } else {
         delete $scope.browser.query.$where;
       }
@@ -1460,16 +1514,20 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             $location.url(localStorage.display + '/' + localStorage.type);
         }
         $scope.browser.elements = docs;
-
         $scope.main.nbElements = docs.length;
 
+        if (options.limit) {
+          $scope.browser.limitElements = $scope.browser.elementsPerPages;
+        }
+
         $scope.$apply();
-        console.log('List updated');
 
-        $scope.browser.scrollBar.update();
+        $scope.browser.updateScrollbar();
+        console.timeEnd('List updated');
 
-        if (callback)
+        if (options.callback) {
           callback();
+        }
       });
     };
 

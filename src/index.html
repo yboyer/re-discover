@@ -1,48 +1,39 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<meta http-equiv="Content-type" content="text/html; charset=UTF-8">
-	<title>(Re)Discover</title>
-	<link rel="stylesheet" type="text/css" href="node_modules/gemini-scrollbar/gemini-scrollbar.css">
-	<link rel="stylesheet" type="text/css" href="app.css">
-</head>
-<body ng-app="app">
-	<div class="wrapper {{main.home ? 'homeView' : ''}}" ng-controller="MainCtrl as main">
-		<div class="sidebar">
-			<appname ng-click="main.setHome()">(Re)Discover</appname>
-			<div id="sections">
-				<div class="gm-scroll-view">
-					<section>
-						<div class="title">Categories</div>
-						<div ng-class="'All' == main.type ? 'selected' : ''" ng-click="main.displayType('All')" class="link">All</div>
-						<div ng-repeat="types in main.typeSections track by $index" class="types">
-							<div ng-repeat="type in types | orderBy" ng-class="type == main.type ? 'selected' : ''" ng-click="main.displayType(type)" class="link">{{type}}s</div>
-						</div>
-					</section>
-					<section>
-						<div class="title">Genres</div>
-						<div ng-class="'All' == main.genre ? 'selected' : ''" ng-click="main.displayGenre('All')" class="link">All</div>
-						<div ng-repeat="genre in main.genres | orderBy" ng-class="genre == main.genre ? 'selected' : ''" ng-click="main.displayGenre(genre)" class="link">{{genre}}</div>
-					</section>
-				</div>
-				<div class="gm-scrollbar -vertical">
-					<div class="thumb"></div>
-				</div>
-				<div class="gm-scrollbar -horizontal">
-					<div class="thumb"></div>
-				</div>
-			</div>
-		</div>
-		<div class="main" ng-view></div>
-		<div class="statusbar">
-			<div class="message {{main.status.spinner}} {{main.status.show}}">{{main.status.text}}</div>
-			<div class="reload" ng-click="main.updateDatabase();"></div>
-			<div class="nbElements">{{main.nbElements}}</div>
-		</div>
-	</div>
-	<script type="text/javascript" src="angular.js"></script>
-	<script type="text/javascript" src="node_modules/gemini-scrollbar/index.js"></script>
-	<script type="text/javascript" src="app.js"></script>
-	<script type="text/javascript" src="templates.js"></script>
-</body>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=UTF-8">
+    <title>(Re)Discover</title>
+    <link rel="stylesheet" type="text/css" href="app.css">
+  </head>
+  <body ng-app="app">
+    <div class="wrapper {{main.home ? 'homeView' : ''}}" ng-controller="MainCtrl as main">
+      <div class="sidebar">
+        <appname ng-click="main.setHome()">(Re)Discover</appname>
+        <div id="sections">
+          <section>
+            <div class="title">Categories</div>
+            <div ng-class="'All' == main.type ? 'selected' : ''" ng-click="main.displayType('All')" class="link">All</div>
+            <div ng-repeat="types in main.typeSections track by $index" ng-hide="types.length === 0" class="types">
+              <div ng-repeat="type in types | orderBy" ng-class="type == main.type ? 'selected' : ''" ng-click="main.displayType(type)" class="link">{{type}}s</div>
+            </div>
+          </section>
+          <section>
+            <div class="title">Genres</div>
+            <div ng-class="'All' == main.genre ? 'selected' : ''" ng-click="main.displayGenre('All')" class="link">All</div>
+            <div ng-repeat="genre in main.genres | orderBy" ng-class="genre == main.genre ? 'selected' : ''" ng-click="main.displayGenre(genre)" class="link">{{genre}}</div>
+          </section>
+        </div>
+      </div>
+      <div class="main" ng-view></div>
+      <div class="statusbar">
+        <div class="message {{main.status.spinner}} {{main.status.show}}">{{main.status.text}}</div>
+        <div class="reload" ng-click="main.updateDatabase();"></div>
+        <div class="nbElements">{{main.displayed && main.displayed < main.nbElements ? main.displayed + ' / ' : ''}}{{main.nbElements}}</div>
+      </div>
+    </div>
+    <script type="text/javascript" src="angular.js"></script>
+    <script type="text/javascript" src="node_modules/perfect-scrollbar/dist/js/min/perfect-scrollbar.min.js"></script>
+    <script type="text/javascript" src="app.js"></script>
+    <script type="text/javascript" src="templates.js"></script>
+  </body>
 </html>

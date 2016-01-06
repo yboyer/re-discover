@@ -53,10 +53,11 @@ angular.module('home', ['ngRoute'])
       chooser.val = value || '';
       chooser.modified = value;
       chooser.addEventListener('change', function() {
+        if (!this.value) {
+          return;
+        }
         this.val = this.value;
-        if (!this.val) {
-          $scope.home.directories.splice(this.index, 1);
-        } else if (!this.modified) {
+        if (!this.modified) {
           for (var d = $scope.home.directories.length - 1; d >= 0; d--) {
             if (d != this.index) {
               if ($scope.home.directories[d].val == this.val) {
@@ -91,6 +92,9 @@ angular.module('home', ['ngRoute'])
       return chooser;
     };
     $scope.home.directories = [$scope.home.getDirChooser()];
+    $scope.home.removeDirectory = function(index){
+      $scope.home.directories.splice(index, 1);
+    };
     $scope.home.choose = function(index) {
       $scope.home.directories[index].index = index;
       $scope.home.directories[index].show();
@@ -107,6 +111,9 @@ angular.module('home', ['ngRoute'])
       browser.setAttribute('accept', '.exe,.app');
       browser.val = value || '';
       browser.addEventListener('change', function() {
+        if (!this.value) {
+          return;
+        }
         this.val = this.value.replace(/\\/g, '/');
         $scope.home.updateSubmitStatus();
       });
@@ -116,6 +123,9 @@ angular.module('home', ['ngRoute'])
       return browser;
     };
     $scope.home.playerPath = $scope.home.getFileBrowser(localStorage.playerPath);
+    $scope.home.clearPlayer = function() {
+      $scope.home.playerPath.val = '';
+    };
     $scope.home.findPlayer = function() {
       $scope.home.playerPath.show();
     };
@@ -155,27 +165,31 @@ angular.module('home', ['ngRoute'])
           }
         }
 
-        localStorage.playerPath = $scope.home.playerPath.val;
-        localStorage.extentions = JSON.stringify(cbs);
-        localStorage.path2browse = JSON.stringify(dirs);
+        if (localStorage.playerPath === $scope.home.playerPath.val && localStorage.extentions === JSON.stringify(cbs) && localStorage.path2browse === JSON.stringify(dirs)) {
+          $location.path(localStorage.display + '/' + localStorage.type);
+        } else {
+          localStorage.playerPath = $scope.home.playerPath.val;
+          localStorage.extentions = JSON.stringify(cbs);
+          localStorage.path2browse = JSON.stringify(dirs);
 
-        $scope.home.hidePop = true;
-
-        var idMsg = $scope.main.setMessage({
-          spinner: true,
-          text: 'Updating the database...'
-        });
-
-        tools.updateDatabase(function() {
-          $scope.main.setMessage({
-            removeId: idMsg,
-            text: 'Database updated'
+          var idMsg = $scope.main.setMessage({
+            spinner: true,
+            text: 'Updating the database...'
           });
 
-          $scope.main.updateCategories();
+          tools.updateDatabase(function() {
+            $scope.main.setMessage({
+              removeId: idMsg,
+              text: 'Database updated'
+            });
 
-          $location.path(localStorage.display + '/' + localStorage.type);
-        });
+            $scope.main.updateCategories();
+
+            $location.path(localStorage.display + '/' + localStorage.type);
+          });
+        }
+
+        $scope.home.hidePop = true;
       }
     };
   }]);

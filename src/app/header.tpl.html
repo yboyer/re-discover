@@ -1,5 +1,5 @@
 <div id="search">
-  <input placeholder="Search{{browser.searchIn ? ' in ' + browser.searchIn : ''}}..." ng-change="browser.updateList(); browser.resetScroll()" ng-keydown="browser.searchKD($event)" ng-model="browser.searchValue" ng-trim="false">
+  <input placeholder="Search{{browser.searchIn ? ' in ' + browser.searchIn : ''}}..." ng-change="browser.updateList({limit: true}); browser.resetScroll()" ng-keydown="browser.searchKD($event)" ng-model="browser.searchValue" ng-trim="false">
 </div>
 <div class="sorting">
   {{browser.sortingName}}

@@ -1,10 +1,10 @@
 <div class="browser list {{browser.status}} {{browser.disableFull ? 'disableFull' : ''}}" ng-controller="BrowserCtrl as browser">
   <header ng-include="'header.tpl.html'"></header>
   <div class="wrapElems">
-    <div id="elements" class="gm-scroll-view">
+    <div id="elements">
       <div class="nothing" ng-show="browser.elements.length == 0">Nothing found...</div>
       <div class="divider static" ng-hide="browser.elements.length == 0">{{browser.staticValue}}</div>
-      <div ng-repeat="elem in (elems = (browser.elements | orderBrowser:browser.sorting)) track by elem._id">
+      <div ng-repeat="elem in (elems = (browser.elements | orderBrowser:browser.sorting)) | limitTo:browser.limitElements track by elem._id">
         <div class="divider" ng-if="elem.sortValue != elems[$index-1].sortValue">{{elem.sortValue}}</div>
         <div class="elem {{elem.missing ? 'missing' : ''}} {{elem.updated ? 'full' : ''}} {{elem.type.toLowerCase()}}" ng-click="display.show($event, elem._id)">
           <div class="poster" ng-click="elem.type != 'Serie' ? browser.play($event, elem._id) : browser.goToEpisodes($event, elem._id)" style="{{elem.poster}}">
@@ -34,12 +34,6 @@
           </div>
         </div>
       </div>
-    </div>
-    <div class="gm-scrollbar bro -vertical">
-      <div class="thumb"></div>
-    </div>
-    <div class="gm-scrollbar bro -horizontal">
-      <div class="thumb"></div>
     </div>
   </div>
   <div ng-include="'popupElement.tpl.html'"></div>
