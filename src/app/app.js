@@ -380,7 +380,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         idMsg = $scope.main.setMessage({
           removeId: idMsg,
           spinner: true,
-          text: 'Updating the database... (Browsing folder n°' + (++dirs) + ': “' + /([^\/]*)\/*$/.exec(dir)[1] + '”)'
+          text: 'Updating the database... (Browsing folder n°' + (++dirs) + ': “' + /([^(\/|\\)]*)\/*$/.exec(dir)[1] + '”)'
         });
       });
     };
