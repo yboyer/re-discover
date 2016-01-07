@@ -376,11 +376,11 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         });
         $scope.main.updateSideBar();
         $scope.$broadcast('updateList');
-      }, function() {
+      }, function(dir) {
         idMsg = $scope.main.setMessage({
           removeId: idMsg,
           spinner: true,
-          text: 'Updating the database... (Browsing folder n°' + (++dirs) + ')'
+          text: 'Updating the database... (Browsing folder n°' + (++dirs) + ': “' + /([^\/]*)\/*$/.exec(dir)[1] + '”)'
         });
       });
     };

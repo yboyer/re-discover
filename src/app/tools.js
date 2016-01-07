@@ -34,7 +34,7 @@ function browseDirectories(paths, cb, step) {
 
 function browseDirectory(dir, done, step) {
   if (step !== undefined) {
-    step();
+    step(dir);
   }
   var files = [];
   fs.readdir(dir, function(err, list) {
