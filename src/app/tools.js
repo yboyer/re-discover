@@ -18,6 +18,8 @@ function browseDirectories(paths, cb, step) {
   var total = paths.length;
   var files = [];
 
+  var isExt = new RegExp(JSON.parse(localStorage.extentions).join('|'), 'i');
+
   var handler = function(err, f) {
     if (!err) {
       files = f.concat(files);
@@ -28,11 +30,11 @@ function browseDirectories(paths, cb, step) {
   };
 
   for (var p = paths.length - 1; p >= 0; p--) {
-    browseDirectory(paths[p], handler, step);
+    browseDirectory(paths[p], isExt, handler, step);
   }
 }
 
-function browseDirectory(dir, done, step) {
+function browseDirectory(dir, isExt, done, step) {
   if (step !== undefined) {
     step(dir);
   }
@@ -43,38 +45,29 @@ function browseDirectory(dir, done, step) {
     }
     var pending = list.length;
     if (!pending) {
-      return done(null, cleanFiles(files));
+      return done(null, files);
     }
-    list.forEach(function(file) {
+    list.map(function(file) {
       file = path.resolve(dir, file);
       fs.stat(file, function(err, stat) {
         if (stat && stat.isDirectory()) {
-          browseDirectory(file, function(err, res) {
+          browseDirectory(file, isExt, function(err, res) {
             files = files.concat(res);
             if (!--pending) {
-              done(null, cleanFiles(files));
+              done(null, files);
             }
           }, step);
         } else {
-          files.push(file);
+          if (isExt.test(path.extname(file))) {
+            files.push(file);
+          }
           if (!--pending) {
-            done(null, cleanFiles(files));
+            done(null, files);
           }
         }
       });
     });
   });
-}
-
-function cleanFiles(files) {
-  var res = [],
-    exts = JSON.parse(localStorage.extentions);
-  for (var i = 0; i < files.length; i++) {
-    if (exts.indexOf(path.extname(files[i]).toLowerCase().slice(1)) != -1) {
-      res.push(files[i]);
-    }
-  }
-  return res;
 }
 
 

@@ -172,19 +172,7 @@ angular.module('home', ['ngRoute'])
           localStorage.extentions = JSON.stringify(cbs);
           localStorage.path2browse = JSON.stringify(dirs);
 
-          var idMsg = $scope.main.setMessage({
-            spinner: true,
-            text: 'Updating the database...'
-          });
-
-          tools.updateDatabase(function() {
-            $scope.main.setMessage({
-              removeId: idMsg,
-              text: 'Database updated'
-            });
-
-            $scope.main.updateCategories();
-
+          $scope.main.updateDatabase(function() {
             $location.path(localStorage.display + '/' + localStorage.type);
           });
         }

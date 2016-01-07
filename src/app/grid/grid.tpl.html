@@ -3,7 +3,7 @@
   <div class="wrapElems">
     <div id="elements">
       <div class="nothing" ng-show="browser.elements.length == 0">Nothing found...</div>
-      <div class="elem {{elem.missing ? 'missing' : ''}} {{elem.type.toLowerCase()}}" ng-repeat="elem in (elem = (browser.elements | orderBrowser:browser.sorting)) | limitTo:browser.limitElements track by elem._id">
+      <div class="elem {{elem.missing ? 'missing' : ''}} {{elem.type.toLowerCase()}}" ng-repeat="elem in browser.elements | limitTo:browser.limitElements track by elem._id">
         <div class="poster" ng-click="elem.type != 'Serie' ? browser.play($event, elem._id) : browser.goToEpisodes($event, elem._id)" style="{{elem.poster}}">
           <div class="overlay {{elem.type != 'Serie' ? 'play' : 'next'}}"></div>
         </div>

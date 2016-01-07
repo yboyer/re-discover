@@ -57,7 +57,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           }
         });
       },
-      _removeEmptyElem: function(doc, callback) {
+      _removeEmptyElem: function(doc, callback, removing) {
         var tools = this;
 
         db.remove({
@@ -75,13 +75,16 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
               duplicates: []
             }
           }, {}, function() {
+            if (removing) {
+              removing(tools.totalMissing);
+            }
             if (--tools.totalMissing === 0) {
               callback();
             }
           });
         });
       },
-      _updateMissings: function(paths, callback) {
+      _updateMissings: function(paths, callback, removing) {
         var tools = this;
 
         db.find({
@@ -100,14 +103,14 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           if (docs.length !== 0) {
             tools.totalMissing = docs.length;
             for (var d = docs.length - 1; d >= 0; d--) {
-              tools._removeEmptyElem(docs[d], callback);
+              tools._removeEmptyElem(docs[d], callback, removing);
             }
           } else {
             callback();
           }
         });
       },
-      updateDatabase: function(callback, step) {
+      updateDatabase: function(callback, step, adding, removing) {
         var path2browse = JSON.parse(localStorage.path2browse || '[]');
         var tools = this;
 
@@ -115,7 +118,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           var total = files.length;
 
           if (files.length === 0) {
-            tools._updateMissings(files, callback);
+            tools._updateMissings(files, callback, removing);
             return;
           }
 
@@ -148,9 +151,9 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                 quality = 'HD';
               } else if (/1080/.test(filename)) {
                 quality = 'Full HD';
-              } else if (/2160/.test(filename) || /4K/.test(filename)) {
-                quality = '4K';
-              } else if (/4320/.test(filename) || /8K/.test(filename)) {
+              } else if (/2160/.test(filename) || /4K/i.test(filename)) {
+                quality = 'Ultra HD';
+              } else if (/4320/.test(filename) || /8K/i.test(filename)) {
                 quality = '8K';
               }
 
@@ -186,21 +189,24 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
               if (update.$set !== undefined && angular.equals(update.$set, dbFilenames[filename])) {
                 if (--total === 0) {
-                  tools._updateMissings(paths, callback);
+                  tools._updateMissings(paths, callback, removing);
                 }
               } else {
                 db.update({
                   filename: filename,
-                  clean_filename: filename.replace(/\.|\_/g, ' '),
+                  clean_filename: filename.replace(/\.|\_/g, ' ').replace(/^\s*/, ''),
                   path: {
                     $exists: true
                   }
                 }, update, {
                   upsert: true
                 }, function() {
+                  if (adding) {
+                    adding(total);
+                  }
                   // Find missing files
                   if (--total === 0) {
-                    tools._updateMissings(paths, callback);
+                    tools._updateMissings(paths, callback, removing);
                   }
                 });
               }
@@ -219,13 +225,22 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
   })
   .filter('orderBrowser', function() {
     return function(items, param) {
-      var filtered = [];
-      angular.forEach(items, function(item) {
-        filtered.push(item);
+      if (items === undefined) {
+        return items;
+      }
+      console.time('Sort ' + param);
+
+      var filtered = items.map(function(item) {
+        return item;
       });
 
-      console.time('Sort ' + param);
       switch (param) {
+        case 'filename':
+          filtered.sort(function(a, b) {
+            return a.filename.localeCompare(b.filename);
+          });
+          break;
+
         case 'name':
           filtered.sort(function(a, b) {
             a.sortValue = a.name.charAt(0).removeDiacritics().toUpperCase();
@@ -359,8 +374,8 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     };
 
 
-    $scope.main.updateDatabase = function() {
-      if ($scope.main.databaseBusy || localStorage.path2browse === undefined) {
+    $scope.main.updateDatabase = function(callback) {
+      if ($scope.main.databaseBusy) {
         return;
       }
 
@@ -374,20 +389,40 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           removeId: idMsg,
           text: 'Database updated'
         });
+
         $scope.main.updateSideBar();
-        $scope.$broadcast('updateList');
+
+        if (callback) {
+          callback();
+        } else {
+          $scope.$broadcast('updateList');
+        }
       }, function(dir) {
         idMsg = $scope.main.setMessage({
           removeId: idMsg,
           spinner: true,
           text: 'Updating the database... (Browsing folder n°' + (++dirs) + ': “' + /([^(\/|\\)]*)\/*$/.exec(dir)[1] + '”)'
         });
+      }, function(nb) {
+        idMsg = $scope.main.setMessage({
+          removeId: idMsg,
+          spinner: true,
+          text: 'Updating the database... (Adding file n°' + nb + ')'
+        });
+        }, function(nb) {
+        idMsg = $scope.main.setMessage({
+          removeId: idMsg,
+          spinner: true,
+          text: 'Updating the database... (Removing file n°' + nb + ')'
+        });
       });
     };
 
     $scope.main.setHome = function() {
       $scope.main.home = true;
-      $location.path('home');
+      $timeout(function() {
+        $location.path('home');
+      });
     };
     $scope.main.unsetHome = function() {
       $scope.main.home = false;
@@ -475,14 +510,16 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     $scope.main.updateGenres = function(query) {
       console.time('updateGenres');
 
-      if (query)
+      if (query) {
         $scope.main.genreQuery = query;
+      }
 
       if (['Unknow', 'Duplicate'].indexOf($scope.main.type) != -1) {
         $scope.main.genres.length = 0;
         $timeout(function() {
           $scope.sidebar.updateScrollbar();
         });
+        console.timeEnd('updateGenres');
         return;
       }
 
@@ -524,8 +561,9 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     // Preload posters and clean the 'posters' folder
     db.find({}, function(err, docs) {
       var ids = [];
-      for (var d = docs.length - 1; d >= 0; d--)
+      for (var d = docs.length - 1; d >= 0; d--) {
         ids.push(docs[d]._id);
+      }
 
       fs.readdir(postersPath, function(err, files) {
         if (err) {
@@ -550,10 +588,12 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     // Listerners
     win.on('close', function() {
       if ($scope.main.status.show && $scope.main.status.spinner) {
-        if (confirm('The application is currentely on process.\n\nDo you want to exit the app anyway ?..'))
+        if (confirm('The application is currentely on process.\n\nDo you want to exit the app anyway ?..')) {
           gui.App.quit();
-      } else
+        }
+      } else {
         gui.App.quit();
+      }
     });
 
     document.body.shortcut({
@@ -616,10 +656,12 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
 
     $scope.main.setView();
-    $scope.main.updateCategories();
-    $scope.main.updateDatabase();
+    if (localStorage.path2browse !== undefined) {
+      $scope.main.updateCategories();
+      $scope.main.updateDatabase();
+    }
   }])
-  .controller('BrowserCtrl', ['$scope', '$routeParams', '$location', '$timeout', 'tools', function($scope, $routeParams, $location, $timeout, tools) {
+  .controller('BrowserCtrl', ['$scope', '$routeParams', '$location', '$timeout', '$filter', 'tools', function($scope, $routeParams, $location, $timeout, $filter, tools) {
     console.log('BrowserCtrl');
     $scope.browser = this;
     $scope.find = {};
@@ -632,8 +674,9 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     if (document.querySelector('.browser').classList.contains('list')) {
       elementsContainer.addEventListener('scroll', function() {
         var dividers = elementsContainer.querySelectorAll('.divider:not(.static)');
-        if (dividers.length === 0)
+        if (dividers.length === 0) {
           return;
+        }
 
         var scrollTop = this.scrollTop;
         for (var d = dividers.length - 1; d >= 0; d--) {
@@ -646,8 +689,9 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
               divider.part = d;
             }
             if (scrollTop >= offsetTop) {
-              if (divider.status == 'static')
+              if (divider.status == 'static') {
                 return;
+              }
               divider.status = 'static';
               divider.textContent = dividers[d].textContent;
               divider.style.top = '';
@@ -664,11 +708,12 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       });
     }
     $scope.browser.resetScroll = function() {
-      if (!divider)
+      elementsContainer.scrollTop = 0;
+      if (!divider) {
         return;
+      }
       divider.textContent = '';
       divider.status = '';
-      elementsContainer.scrollTop = 0;
     };
 
 
@@ -736,8 +781,8 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     }];
     $scope.browser.setSorting = function(sort) {
       $scope.browser.sorting = localStorage.sorting = sort.type;
-      elementsContainer.scrollTop = 0;
       $scope.browser.sortingName = sort.value;
+      $scope.browser.sortElements();
       $timeout(function() {
         $scope.browser.updateScrollbar();
       });
@@ -770,7 +815,9 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
 
     $scope.browser.query = {};
-    if ($scope.browser.serie_id) $scope.browser.query.serie_id = $scope.browser.serie_id;
+    if ($scope.browser.serie_id) {
+      $scope.browser.query.serie_id = $scope.browser.serie_id;
+    }
     switch ($scope.browser.type) {
       case 'All':
         $scope.browser.query.type = {
@@ -1477,6 +1524,9 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       });
     };
 
+    $scope.browser.sortElements = function(sorting) {
+      $scope.browser.elements = $filter('orderBrowser')($scope.browser.elements, sorting || $scope.browser.sorting);
+    };
     $scope.browser.updateList = function(options) {
       console.time('List updated');
 
@@ -1500,8 +1550,12 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         delete $scope.browser.query.$where;
       }
 
+      console.time('query');
       db.find($scope.browser.query, function(err, docs) {
-        if ($scope.browser.type != 'Duplicate') {
+        console.timeEnd('query');
+
+        var sorting;
+        if ($scope.browser.type !== 'Duplicate') {
           for (var d = docs.length - 1; d >= 0; d--) {
             if (docs[d].update_small)
               docs[d].poster = (docs[d].poster_url ? 'background-image:url(\'' + filePosterPath + '/_' + docs[d]._id + '.jpg?' + docs[d].update_small + '\')' : 'background-image:linear-gradient(#545B6C, #484D57)');
@@ -1510,10 +1564,13 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             docs[d].name = (docs[d].episode ? 'E' + docs[d].episode.twoDigits() + ' - ' : '') + ((docs[d].title_fr || docs[d].title_en) || docs[d].clean_filename);
           }
         } else {
-          if (docs.length === 0)
+          if (docs.length === 0) {
             $location.url(localStorage.display + '/' + localStorage.type);
+          }
+          sorting = 'filename';
         }
         $scope.browser.elements = docs;
+        $scope.browser.sortElements(sorting);
         $scope.main.nbElements = docs.length;
 
         if (options.limit) {
@@ -1526,7 +1583,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         console.timeEnd('List updated');
 
         if (options.callback) {
-          callback();
+          options.callback();
         }
       });
     };
