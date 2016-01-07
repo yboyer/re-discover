@@ -329,7 +329,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           }
 
           if (data.spinner) {
-            $scope.main.queueStatus.push($scope.main.status.clone());
+            $scope.main.queueStatus.push(angular.clone($scope.main.status));
 
             newStatus = data;
           } else {
@@ -800,7 +800,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             $ne: true
           };
     }
-    $scope.main.updateGenres($scope.browser.query.clone());
+    $scope.main.updateGenres(angular.copy($scope.browser.query));
     if ($scope.browser.genre != 'All') {
       if ($scope.browser.genre == 'Unknow') {
         $scope.browser.query.genre = {

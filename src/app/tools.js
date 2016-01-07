@@ -96,15 +96,6 @@ Number.prototype.twoDigits = function() {
   }
   return ('0' + this).slice(-2);
 };
-Object.prototype.clone = function() {
-  var copy = this.constructor();
-  for (var attr in this) {
-    if (this.hasOwnProperty(attr)) {
-      copy[attr] = this[attr];
-    }
-  }
-  return copy;
-};
 
 
 // Key Shortcuts
