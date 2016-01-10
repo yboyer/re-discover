@@ -2,8 +2,8 @@
   "private": true,
   "author": "Yoann Boyer <contact@yoannboyer.com>",
   "name": "(Re)Discover",
-  "description": "",
-  "version": "0.2.11",
+  "description": "A movie indexer for local files.",
+  "version": "0.3.0",
   "main": "index.html",
   "window": {
     "icon": "assets/icon.png",
@@ -17,6 +17,5 @@
     "nedb": "^1.5.1",
     "perfect-scrollbar": "^0.6.8"
   },
-  "chromium-args": "--enable-smooth-scrolling",
-  "js-flags": "--enable-smooth-scrolling"
+  "chromium-args": "--enable-smooth-scrolling"
 }

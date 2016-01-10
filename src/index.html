@@ -8,7 +8,7 @@
   <body ng-app="app">
     <div class="wrapper {{main.home ? 'homeView' : ''}}" ng-controller="MainCtrl as main">
       <div class="sidebar">
-        <appname ng-click="main.setHome()">(Re)Discover</appname>
+        <div ng-click="main.setHome()" id="appname">(Re)Discover</div>
         <div id="sections">
           <section>
             <div class="title">Categories</div>

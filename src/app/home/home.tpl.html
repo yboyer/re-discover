@@ -1,7 +1,7 @@
 <div class="home">
   <div class="popup-wrapper">
     <div class="pop {{home.hidePop ? 'hide' : ''}}">
-      <div class="title">Welcome to your own movie database !</div>
+      <div class="title">Welcome to your own movie and serie database !</div>
       <div class="desc">(Re)Discover allow you to see all your multimedia content in one place</div>
       <div class="info">Overwite your default multimedia player by selecting a new one (optionnal):</div>
       <span class="remove-item" title="Remove" ng-click="home.clearPlayer()"  ng-if="home.playerPath.val"></span><span ng-click="home.findPlayer()" class="select">{{home.playerPath.val || 'Browse...'}}</span>
@@ -12,7 +12,7 @@
       <div class="info">Select directories which you want to browse:</div>
       <div class="paths">
         <div ng-repeat="dir in home.directories" ng-click="home.choose($index)">
-          <span class="remove-item" ng-if="dir.val" ng-click="home.removeDirectory($index)" title="Remove"></span><span class="{{dir.val ? 'item' : 'select'}}">{{dir.val ? ' - ' : ''}} {{dir.val || 'Choose directory...'}}</span>
+          <span class="remove-item" ng-if="dir.val" ng-click="home.removeDirectory($index)" title="Remove “{{dir.val}}”"></span><span class="{{dir.val ? 'item' : 'select'}}">{{dir.val ? ' - ' : ''}} {{dir.val || 'Browse...'}}</span>
         </div>
       </div>
       <div class="next {{home.next}}" ng-click="home.launch(home.next)"></div>

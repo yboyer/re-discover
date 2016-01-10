@@ -1,5 +1,3 @@
-'use strict';
-
 var bump = require('gulp-bump');
 var rename = require("gulp-rename");
 var debug = require('gulp-debug');
@@ -17,6 +15,7 @@ var minifyHtml = require('gulp-minify-html');
 var del = require('del');
 var merge = require('merge-stream');
 var jshint = require('gulp-jshint');
+var notifier = require("node-notifier");
 
 
 var nwConf = {
@@ -37,22 +36,43 @@ var src = {
     html: ['src/app/**/*.tpl.html'],
     js: ['src/app/**/*.tpl.html']
   }
-}
+};
 
 var jshintrc = {
   browser: true,
   node: true,
-  // unused: true,
+  unused: true,
   undef: true,
   curly: true,
   latedef: 'nofunc',
   noarg: true,
   boss: true,
   eqnull: true
-}
+};
 
-gulp.task('default', ['clean', 'html2js', 'concat', 'scss', 'copy']);
-gulp.task('dev', ['default', 'watch']);
+var notify = function(msg) {
+  return notifier.notify({
+    title: '(Re)Discover',
+    message: msg,
+    sound: true,
+  });
+};
+
+gulp.task('build', ['clean', 'html2js', 'concat', 'scss', 'copy'], function() {
+  notify('Build done');
+});
+gulp.task('package', ['build'], function() {
+  var nw = new NwBuilder(nwConf);
+
+  nw.on('log', function(msg) {
+    gutil.log(msg);
+  });
+
+  return nw.build().catch(function(err) {
+    gutil.log(err);
+  });
+});
+gulp.task('default', ['build', 'watch']);
 
 gulp.task('clean', function() {
   return del.sync('core');
@@ -110,8 +130,24 @@ gulp.task('jshint', function() {
 });
 
 gulp.task('bump', function() {
-  gulp.src(src.packages, {base: './'})
+  gulp.src(src.packages, {
+      base: './'
+    })
     .pipe(bump())
+    .pipe(gulp.dest('./'));
+});
+gulp.task('bump:minor', function() {
+  gulp.src(src.packages, {
+      base: './'
+    })
+    .pipe(bump({type: 'minor'}))
+    .pipe(gulp.dest('./'));
+});
+gulp.task('bump:major', function() {
+  gulp.src(src.packages, {
+      base: './'
+    })
+    .pipe(bump({type: 'major'}))
     .pipe(gulp.dest('./'));
 });
 
@@ -139,18 +175,6 @@ gulp.task('scss', function() {
     .pipe(gulp.dest('core/'));
 });
 
-gulp.task('build', ['default'], function() {
-  var nw = new NwBuilder(nwConf);
-
-  nw.on('log', function(msg) {
-    gutil.log(msg);
-  });
-
-  return nw.build().catch(function(err) {
-    gutil.log(err);
-  });
-});
-
 gulp.task('watch', function() {
-  gulp.watch('src/**/*', ['default']);
+  gulp.watch('src/**/*', ['build']);
 });

@@ -409,7 +409,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           spinner: true,
           text: 'Updating the database... (Adding file n°' + nb + ')'
         });
-        }, function(nb) {
+      }, function(nb) {
         idMsg = $scope.main.setMessage({
           removeId: idMsg,
           spinner: true,
@@ -780,7 +780,12 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       value: 'File date'
     }];
     $scope.browser.setSorting = function(sort) {
-      $scope.browser.sorting = localStorage.sorting = sort.type;
+      $scope.browser.sorting = sort.type;
+
+      if (sort.type !== 'season') {
+        localStorage.sorting = sort.type;
+      }
+
       $scope.browser.sortingName = sort.value;
       $scope.browser.sortElements();
       $timeout(function() {
@@ -842,10 +847,11 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         break;
       default:
         $scope.browser.query.type = $scope.browser.type;
-        if ($scope.browser.type != 'Episode')
+        if ($scope.browser.type != 'Episode') {
           $scope.browser.query.missing = {
             $ne: true
           };
+        }
     }
     $scope.main.updateGenres(angular.copy($scope.browser.query));
     if ($scope.browser.genre != 'All') {
@@ -891,7 +897,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         _id: _id
       }, function(err, doc) {
         // If the file exists
-        fs.stat(doc.path, function(err, file) {
+        fs.stat(doc.path, function(err) {
           if (err) {
             var idMsg = $scope.main.setMessage({
               spinner: true,
@@ -921,7 +927,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                           }
                         }, function(err, count) {
                           if (count === 0) {
-                            tools.removeEntry(doc.serie_id, function(err, count) {
+                            tools.removeEntry(doc.serie_id, function() {
                               $scope.main.updateSideBar();
                               $location.url(localStorage.display + '/All');
                             });
@@ -986,8 +992,9 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         } else if (d.date_first) {
           d.date = d.date_first.toLocaleDateString('en-GB') + ' - ' + d.date_last.toLocaleDateString('en-GB');
         }
-        if (d.size)
+        if (d.size) {
           d.size = readableBytes(d.size);
+        }
         d.posterBackgroundUrl = d.poster_url ? 'background-image: url(\'' + filePosterPath + '/' + d._id + '.jpg?' + d.update_orig + '\')' : '';
         $scope.display.element = d;
         $scope.browser.status = 'display';
@@ -1219,7 +1226,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             }
           }, function(err, count) {
             if (count === 0) {
-              tools.removeEntry(doc.serie_id, function(err, count) {
+              tools.removeEntry(doc.serie_id, function() {
                 $scope.main.updateSideBar();
               });
             }
@@ -1236,8 +1243,9 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             episode.date = new Date(tmdbInfo.air_date);
 
             episode.guests = [];
-            for (var g = 0, gl = tmdbInfo.guest_stars.length; g < gl; g++)
+            for (var g = 0, gl = tmdbInfo.guest_stars.length; g < gl; g++) {
               episode.guests.push(tmdbInfo.guest_stars[g].name);
+            }
 
             data.req = requestAsync('http://api.themoviedb.org/3/tv/' + data.tmbd_id + '/season/' + season_num + '/episode/' + episode_num + '/external_ids?api_key=7b5e30851a9285340e78c201c4e4ab99', function(status, tmdbInfo) {
               if (status == 200) {
@@ -1365,8 +1373,9 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           }
 
           succescb();
-        } else
+        } else {
           errorCB();
+        }
       });
     };
     $scope.find.improveResult = function(index) {
@@ -1457,19 +1466,23 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       if ($scope.find.tmdbReq) {
         $scope.find.tmdbReq.abort();
         for (var idx = $scope.find.results.length - 1; idx >= 0; idx--) {
-          if ($scope.find.results[idx].tmdbReq)
+          if ($scope.find.results[idx].tmdbReq) {
             $scope.find.results[idx].tmdbReq.abort();
-          if ($scope.find.results[idx].enTmdbReq)
+          }
+          if ($scope.find.results[idx].enTmdbReq) {
             $scope.find.results[idx].enTmdbReq.abort();
-          if ($scope.find.results[idx].omdbReq)
+          }
+          if ($scope.find.results[idx].omdbReq) {
             $scope.find.results[idx].omdbReq.abort();
+          }
         }
       }
     };
 
     $scope.find.show = function(e, elem) {
-      if (elem.type == 'Serie' || elem.missing)
+      if (elem.type == 'Serie' || elem.missing) {
         return;
+      }
 
       e.stopPropagation();
 
@@ -1488,9 +1501,9 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       document.querySelector('.choose').style.height = '';
       $scope.browser.status = 'searching';
 
-      if ($scope.find.initialized !== undefined)
+      if ($scope.find.initialized !== undefined) {
         $scope.find.updateScrollbar();
-      else {
+      } else {
         $scope.find.scrollElement = document.querySelector('.popup-wrapper.search #results');
         Ps.initialize($scope.find.scrollElement, psConfig);
       }
@@ -1518,7 +1531,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       }
 
       db.findOne(query, function(err, doc) {
-        if (doc == null) {
+        if (doc === null) {
           $location.url(localStorage.display + '/All');
         }
       });
@@ -1552,15 +1565,17 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
       console.time('query');
       db.find($scope.browser.query, function(err, docs) {
+        console.log(err, docs);
         console.timeEnd('query');
 
         var sorting;
         if ($scope.browser.type !== 'Duplicate') {
           for (var d = docs.length - 1; d >= 0; d--) {
-            if (docs[d].update_small)
+            if (docs[d].update_small) {
               docs[d].poster = (docs[d].poster_url ? 'background-image:url(\'' + filePosterPath + '/_' + docs[d]._id + '.jpg?' + docs[d].update_small + '\')' : 'background-image:linear-gradient(#545B6C, #484D57)');
-            else
+            } else {
               docs[d].poster = '';
+            }
             docs[d].name = (docs[d].episode ? 'E' + docs[d].episode.twoDigits() + ' - ' : '') + ((docs[d].title_fr || docs[d].title_en) || docs[d].clean_filename);
           }
         } else {

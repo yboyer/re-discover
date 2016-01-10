@@ -329,7 +329,7 @@ Number.prototype.twoDigits = function() {
     'letters': '\u0053\u24C8\uFF33\u015A\u1E64\u015C\u1E60\u0160\u1E66\u1E62\u1E68\u0218\u015E\u2C7E\uA7A8\uA784'
   }, {
     'base': 'SS',
-    letters: '\u1E9E'
+    'letters': '\u1E9E'
   }, {
     'base': 'T',
     'letters': '\u0054\u24C9\uFF34\u1E6A\u0164\u1E6C\u021A\u0162\u1E70\u1E6E\u0166\u01AC\u01AE\u023E\uA786'

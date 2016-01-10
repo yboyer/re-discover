@@ -6,7 +6,7 @@ angular.module('home', ['ngRoute'])
       controllerAs: 'home'
     });
   }])
-  .controller('HomeCtrl', ['$scope', '$location', '$timeout', 'tools', function($scope, $location, $timeout, tools) {
+  .controller('HomeCtrl', ['$scope', '$location', '$timeout', function($scope, $location, $timeout) {
     console.log('HomeCtrl');
     $scope.home = this;
 
@@ -50,13 +50,20 @@ angular.module('home', ['ngRoute'])
       var chooser = document.createElement('input');
       chooser.setAttribute('type', 'file');
       chooser.setAttribute('webkitdirectory', '');
+      // chooser.setAttributeNode(document.createAttribute('nwdirectory'));
+      var nwworkingdir = document.createAttribute('nwworkingdir');
+      nwworkingdir.value = value || '';
+      chooser.setAttributeNode(nwworkingdir);
+
       chooser.val = value || '';
       chooser.modified = value;
       chooser.addEventListener('change', function() {
         if (!this.value) {
           return;
         }
-        this.val = this.value;
+
+        nwworkingdir.value = this.val = this.value;
+
         if (!this.modified) {
           for (var d = $scope.home.directories.length - 1; d >= 0; d--) {
             if (d != this.index) {
@@ -66,7 +73,7 @@ angular.module('home', ['ngRoute'])
               }
               if ($scope.home.directories[d].val.indexOf(this.val) != -1) {
                 $scope.home.directories.splice(d, 1);
-                break;
+                continue;
               }
               if (this.val.indexOf($scope.home.directories[d].val) != -1) {
                 this.val = '';
@@ -92,7 +99,7 @@ angular.module('home', ['ngRoute'])
       return chooser;
     };
     $scope.home.directories = [$scope.home.getDirChooser()];
-    $scope.home.removeDirectory = function(index){
+    $scope.home.removeDirectory = function(index) {
       $scope.home.directories.splice(index, 1);
     };
     $scope.home.choose = function(index) {
