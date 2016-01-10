@@ -1312,12 +1312,11 @@ header {
 
         &:not(.missing) .showFile {
           cursor: pointer;
+          transition: opacity 200ms;
 
           &:hover {
-            opacity: 0.7;
-          }
-          &:hover {
-            opacity: 0.6;
+            transition-duration: 0ms;
+            opacity: 0.65;
           }
         }
       }
