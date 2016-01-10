@@ -344,7 +344,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           }
 
           if (data.spinner) {
-            $scope.main.queueStatus.push(angular.clone($scope.main.status));
+            $scope.main.queueStatus.push(angular.copy($scope.main.status));
 
             newStatus = data;
           } else {
