@@ -28,6 +28,8 @@
             <div>{{display.element.actors.join(', ') || 'N/A'}}</div>
             <div></div>
             <div>{{display.element.abstract_fr || display.element.abstract_en || 'N/A'}}</div>
+            <div></div>
+            <div class="align-right"><span ng-click="display.openIMDB(display.element.imdb_id);" class="external">IMDB</span> / <span ng-click="display.openTMBD(display.element.tmdb_id);" class="external">TMDB</span></div>
           </div>
         </div>
       </div>

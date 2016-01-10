@@ -1010,7 +1010,12 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     $scope.display.showItem = function(itemPath) {
       gui.Shell.showItemInFolder(itemPath);
     };
-
+    $scope.display.openIMDB = function(imdb_id) {
+      gui.Shell.openExternal('http://www.imdb.com/title/' + imdb_id + '/');
+    };
+    $scope.display.openTMBD = function(tmdb_id) {
+      gui.Shell.openExternal('https://www.themoviedb.org/movie/' + tmdb_id);
+    };
 
     $scope.find.results = [];
     $scope.find.updateScrollbar = function() {
@@ -1061,7 +1066,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       }, {
         $set: {
           imdb_id: data.imdb_id,
-          tmbd_id: data.tmbd_id,
+          tmdb_id: data.tmdb_id,
           actors: data.actors,
           director: data.director,
           genre: data.genre,
@@ -1128,7 +1133,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     };
     $scope.find.updateSerie = function(data, callback) {
       var serie = {
-        tmbd_id: data.tmbd_id,
+        tmdb_id: data.tmdb_id,
         imdb_id: data.imdb_id,
         title: data.title,
         title_en: data.title_en,
@@ -1146,7 +1151,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       };
       for (var s = 0, sl = data.seasons.length; s < sl; s++) {
         serie.seasons.push({
-          tmbd_id: data.seasons[s].id,
+          tmdb_id: data.seasons[s].id,
           date: new Date(data.seasons[s].air_date),
           episode_count: data.seasons[s].episode_count,
           season_number: data.seasons[s].season_number
@@ -1154,14 +1159,14 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       }
 
       db.update({
-        tmbd_id: serie.tmbd_id
+        tmdb_id: serie.tmdb_id
       }, {
         $set: serie
       }, {
         upsert: true
       }, function() {
         db.findOne({
-          tmbd_id: serie.tmbd_id
+          tmdb_id: serie.tmdb_id
         }, function(err, doc) {
           callback(doc._id);
           $scope.main.updateSideBar();
@@ -1233,11 +1238,11 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           });
         });
 
-        data.req = requestAsync('http://api.themoviedb.org/3/tv/' + data.tmbd_id + '/season/' + season_num + '/episode/' + episode_num + '?api_key=7b5e30851a9285340e78c201c4e4ab99&language=fr', function(status, tmdbInfo) {
+        data.req = requestAsync('http://api.themoviedb.org/3/tv/' + data.tmdb_id + '/season/' + season_num + '/episode/' + episode_num + '?api_key=7b5e30851a9285340e78c201c4e4ab99&language=fr', function(status, tmdbInfo) {
           if (status == 200) {
             tmdbInfo = JSON.parse(tmdbInfo);
 
-            episode.tmbd_id = tmdbInfo.id;
+            episode.tmdb_id = tmdbInfo.id;
             episode.title_fr = tmdbInfo.name;
             episode.abstract_fr = tmdbInfo.overview;
             episode.date = new Date(tmdbInfo.air_date);
@@ -1247,7 +1252,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
               episode.guests.push(tmdbInfo.guest_stars[g].name);
             }
 
-            data.req = requestAsync('http://api.themoviedb.org/3/tv/' + data.tmbd_id + '/season/' + season_num + '/episode/' + episode_num + '/external_ids?api_key=7b5e30851a9285340e78c201c4e4ab99', function(status, tmdbInfo) {
+            data.req = requestAsync('http://api.themoviedb.org/3/tv/' + data.tmdb_id + '/season/' + season_num + '/episode/' + episode_num + '/external_ids?api_key=7b5e30851a9285340e78c201c4e4ab99', function(status, tmdbInfo) {
               if (status == 200) {
                 tmdbInfo = JSON.parse(tmdbInfo);
                 episode.imdb_id = tmdbInfo.imdb_id;
@@ -1360,7 +1365,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
             if (date) {
               $scope.find.improveResult($scope.find.results.push({
-                tmbd_id: results[r].id,
+                tmdb_id: results[r].id,
                 type: type.capitalize(),
                 title: results[r].original_title || results[r].original_name,
                 title_fr: results[r].title || results[r].name,
@@ -1380,7 +1385,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     };
     $scope.find.improveResult = function(index) {
       if ($scope.find.results[index].type == 'Movie') {
-        $scope.find.results[index].enTmdbReq = requestAsync('http://api.themoviedb.org/3/movie/' + $scope.find.results[index].tmbd_id + '?api_key=7b5e30851a9285340e78c201c4e4ab99&language=en', function(status, tmdbInfo) {
+        $scope.find.results[index].enTmdbReq = requestAsync('http://api.themoviedb.org/3/movie/' + $scope.find.results[index].tmdb_id + '?api_key=7b5e30851a9285340e78c201c4e4ab99&language=en', function(status, tmdbInfo) {
           if (status == 200) {
             tmdbInfo = JSON.parse(tmdbInfo);
             $scope.find.results[index].title_en = tmdbInfo.title;
@@ -1415,7 +1420,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           }
         });
       } else {
-        $scope.find.results[index].enTmdbReq = requestAsync('http://api.themoviedb.org/3/tv/' + $scope.find.results[index].tmbd_id + '?api_key=7b5e30851a9285340e78c201c4e4ab99&language=en', function(status, tmdbInfo) {
+        $scope.find.results[index].enTmdbReq = requestAsync('http://api.themoviedb.org/3/tv/' + $scope.find.results[index].tmdb_id + '?api_key=7b5e30851a9285340e78c201c4e4ab99&language=en', function(status, tmdbInfo) {
           if (status == 200) {
             tmdbInfo = JSON.parse(tmdbInfo);
             $scope.find.results[index].title_en = tmdbInfo.name;
@@ -1427,7 +1432,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             }
 
 
-            $scope.find.results[index].tmdbReq = requestAsync('http://api.themoviedb.org/3/tv/' + $scope.find.results[index].tmbd_id + '/external_ids?api_key=7b5e30851a9285340e78c201c4e4ab99&language=en', function(status, tmdbInfo) {
+            $scope.find.results[index].tmdbReq = requestAsync('http://api.themoviedb.org/3/tv/' + $scope.find.results[index].tmdb_id + '/external_ids?api_key=7b5e30851a9285340e78c201c4e4ab99&language=en', function(status, tmdbInfo) {
               if (status == 200) {
                 tmdbInfo = JSON.parse(tmdbInfo);
                 $scope.find.results[index].imdb_id = tmdbInfo.imdb_id;

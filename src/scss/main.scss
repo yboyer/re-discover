@@ -1279,6 +1279,18 @@ header {
                 color: #FFF;
                 flex-shrink: 0;
               }
+
+              .align-right {
+                text-align: right;
+
+                .external {
+                  cursor: pointer;
+
+                  &:hover {
+                    text-decoration: underline;
+                  }
+                }
+              }
             }
           }
         }
