@@ -1218,10 +1218,11 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           serie_id: serie_id
         };
 
+        // Remove serie if it's the last episode of it
         db.findOne({
           _id: referenceId
         }, function(err, doc) {
-          if (doc.serie_id == serie_id) {
+          if (doc.serie_id === serie_id) {
             return;
           }
           db.count({
@@ -1570,7 +1571,6 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
       console.time('query');
       db.find($scope.browser.query, function(err, docs) {
-        console.log(err, docs);
         console.timeEnd('query');
 
         var sorting;
