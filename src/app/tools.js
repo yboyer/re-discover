@@ -158,7 +158,7 @@ Number.prototype.twoDigits = function() {
   var ctrlCmd = (/Mac/.test(navigator.platform) ? 'meta' : 'ctrl') + 'Key';
 
   HTMLElement.prototype.shortcut = function(options) {
-    if (typeof options != 'object') {
+    if (typeof options !== 'object') {
       throw new TypeError('Invalid options.');
     }
 
@@ -190,27 +190,27 @@ Number.prototype.twoDigits = function() {
       for (var k = 0, kl = options.keys.length; k < kl; k++) {
         var key = options.keys[k].toLowerCase();
 
-        if (key == 'ctrlcmd' && e[ctrlCmd]) {
+        if (key === 'ctrlcmd' && e[ctrlCmd]) {
           if (ctrlCmd === 'ctrlKey') {
             wanted.ctrl = true;
           } else {
             wanted.cmd = true;
           }
-        } else if (key == 'cmd' && e.metaKey) {
+        } else if (key === 'cmd' && e.metaKey) {
           wanted.cmd = true;
-        } else if (key == 'ctrl' && e.ctrlKey) {
+        } else if (key === 'ctrl' && e.ctrlKey) {
           wanted.ctrl = true;
-        } else if (key == 'shift' && e.shiftKey) {
+        } else if (key === 'shift' && e.shiftKey) {
           wanted.shift = true;
-        } else if (key == 'alt' && e.altKey) {
+        } else if (key === 'alt' && e.altKey) {
           wanted.alt = true;
-        } else if (specialkeys[key] != keyCode && String.fromCharCode(keyCode).toLowerCase() != key) {
+        } else if (specialkeys[key] !== keyCode && String.fromCharCode(keyCode).toLowerCase() !== key) {
           return;
         }
       }
 
-      for (var key in pressed) {
-        if (pressed.hasOwnProperty(key) && wanted.hasOwnProperty(key) && pressed[key] !== wanted[key]) {
+      for (var attr in pressed) {
+        if (pressed.hasOwnProperty(attr) && wanted.hasOwnProperty(attr) && pressed[attr] !== wanted[attr]) {
           return;
         }
       }

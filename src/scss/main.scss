@@ -399,6 +399,14 @@ header {
       opacity: 1;
       transition-duration: 0ms;
     }
+
+    .link {
+      cursor: pointer;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
   }
 
   .nbElements {

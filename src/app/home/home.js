@@ -26,19 +26,19 @@ angular.module('home', ['ngRoute'])
     var exts = JSON.parse(localStorage.extentions || '[]');
     $scope.home.checkboxes = [{
       ext: 'avi',
-      checked: exts.indexOf('avi') != -1 || true
+      checked: exts.indexOf('avi') !== -1 || true
     }, {
       ext: 'mp4',
-      checked: exts.indexOf('mp4') != -1 || true
+      checked: exts.indexOf('mp4') !== -1 || true
     }, {
       ext: 'mkv',
-      checked: exts.indexOf('mkv') != -1 || true
+      checked: exts.indexOf('mkv') !== -1 || true
     }, {
       ext: 'flv',
-      checked: exts.indexOf('flv') != -1
+      checked: exts.indexOf('flv') !== -1
     }, {
       ext: 'iso',
-      checked: exts.indexOf('iso') != -1
+      checked: exts.indexOf('iso') !== -1
     }];
     $scope.$watch('home.checkboxes', function() {
       $scope.home.updateSubmitStatus();
@@ -66,16 +66,16 @@ angular.module('home', ['ngRoute'])
 
         if (!this.modified) {
           for (var d = $scope.home.directories.length - 1; d >= 0; d--) {
-            if (d != this.index) {
-              if ($scope.home.directories[d].val == this.val) {
+            if (d !== this.index) {
+              if ($scope.home.directories[d].val === this.val) {
                 this.val = '';
                 return;
               }
-              if ($scope.home.directories[d].val.indexOf(this.val) != -1) {
+              if ($scope.home.directories[d].val.indexOf(this.val) !== -1) {
                 $scope.home.directories.splice(d, 1);
                 continue;
               }
-              if (this.val.indexOf($scope.home.directories[d].val) != -1) {
+              if (this.val.indexOf($scope.home.directories[d].val) !== -1) {
                 this.val = '';
                 return;
               }
@@ -85,7 +85,7 @@ angular.module('home', ['ngRoute'])
           $scope.home.directories = [$scope.home.getDirChooser()].concat($scope.home.directories);
         } else {
           for (var d = $scope.home.directories.length - 1; d >= 0; d--) {
-            if (d != this.index && $scope.home.directories[d].val == this.val) {
+            if (d !== this.index && $scope.home.directories[d].val === this.val) {
               $scope.home.directories.splice(this.index, 1);
             }
           }
@@ -140,7 +140,7 @@ angular.module('home', ['ngRoute'])
 
 
     $scope.home.updateSubmitStatus = function() {
-      if ($scope.home.directories.length == 1) {
+      if ($scope.home.directories.length === 1) {
         return $scope.home.setSubmitStatus(false);
       }
 

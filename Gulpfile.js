@@ -52,6 +52,7 @@ var jshintrc = {
   latedef: 'nofunc',
   noarg: true,
   boss: true,
+  eqeqeq: true,
   eqnull: true
 };
 

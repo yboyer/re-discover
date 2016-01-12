@@ -26,7 +26,7 @@
       </div>
       <div class="main" ng-view></div>
       <div class="statusbar">
-        <div class="message {{main.status.spinner}} {{main.status.show}}">{{main.status.text}}</div>
+        <div class="message {{main.status.spinner}} {{main.status.show}}" compile="main.status.text"></div>
         <div class="reload" ng-click="main.updateDatabase();"></div>
         <div class="nbElements">{{main.displayed && main.displayed < main.nbElements ? main.displayed + ' / ' : ''}}{{main.nbElements}}</div>
       </div>

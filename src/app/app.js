@@ -95,7 +95,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             $ne: 'Serie'
           },
           $where: function() {
-            return paths.indexOf(this.path) == -1;
+            return paths.indexOf(this.path) === -1;
           }
         }, function(err, docs) {
           console.log('File missing:', docs.length, ':', docs);
@@ -166,7 +166,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
               var update;
               paths.push(fullPath);
-              if (fileNames.indexOf(filename) == -1) {
+              if (fileNames.indexOf(filename) === -1) {
                 fileNames.push(filename);
                 update = {
                   $set: {
@@ -289,7 +289,15 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       return filtered;
     };
   })
-  .controller('MainCtrl', ['$scope', '$location', '$timeout', 'tools', function($scope, $location, $timeout, tools) {
+  .directive('compile', ['$compile', function($compile) {
+    return function(scope, element, attrs) {
+      scope.$watch(attrs.compile, function(value) {
+        element.html(value);
+        $compile(element.contents())(scope);
+      });
+    };
+  }])
+  .controller('MainCtrl', ['$scope', '$sce', '$location', '$timeout', 'tools', function($scope, $sce, $location, $timeout, tools) {
     console.log('MainCtrl');
     $scope.main = this;
     $scope.main.home = true;
@@ -310,23 +318,25 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     win.on('resize', $scope.sidebar.updateScrollbar);
 
     // Status message
-    $scope.main.messageNumber = 0;
-    $scope.main.queueStatus = [];
+    $scope.main.message = {
+      messageNumber: 0,
+      queueStatus: []
+    };
     $scope.main.status = {
       spinner: '',
       text: ''
     };
     $scope.main.setMessage = function(data) {
-      data.id = $scope.main.messageNumber++;
+      data.id = $scope.main.message.messageNumber++;
 
       var newStatus;
 
       console.info(data.text);
 
       if ($scope.main.status.show && $scope.main.status.spinner && !$scope.main.status.force) {
-        if (data.removeId == $scope.main.status.id) {
+        if (data.removeId === $scope.main.status.id) {
           if (!data.spinner) {
-            newStatus = $scope.main.queueStatus.pop();
+            newStatus = $scope.main.message.queueStatus.pop();
           }
 
           if (!newStatus) {
@@ -335,16 +345,16 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
         } else {
           if (data.removeId !== undefined) {
-            for (var i = $scope.main.queueStatus.length - 1; i >= 0; i--) {
-              if ($scope.main.queueStatus[i].id === data.removeId) {
-                $scope.main.queueStatus.splice(i, 1);
+            for (var i = $scope.main.message.queueStatus.length - 1; i >= 0; i--) {
+              if ($scope.main.message.queueStatus[i].id === data.removeId) {
+                $scope.main.message.queueStatus.splice(i, 1);
                 break;
               }
             }
           }
 
           if (data.spinner) {
-            $scope.main.queueStatus.push(angular.copy($scope.main.status));
+            $scope.main.message.queueStatus.push(angular.copy($scope.main.status));
 
             newStatus = data;
           } else {
@@ -356,15 +366,20 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         newStatus = data;
       }
 
-      $timeout.cancel($scope.main.timeoutStatus);
+      $timeout.cancel($scope.main.message.timeoutStatus);
       $scope.main.status.id = newStatus.id;
       $scope.main.status.show = 'show';
       $scope.main.status.spinner = newStatus.spinner ? 'spinner' : '';
       $scope.main.status.text = newStatus.text;
       $scope.main.status.force = newStatus.force;
       if (!newStatus.spinner || newStatus.force) {
-        $scope.main.timeoutStatus = $timeout(function() {
-          $scope.main.status.show = '';
+        $scope.main.message.timeoutStatus = $timeout(function() {
+          if ($scope.main.message.default === undefined) {
+            $scope.main.status.show = '';
+          } else {
+            $scope.main.status.spinner = '';
+            $scope.main.status.text = $scope.main.message.default;
+          }
         }, 3000);
       }
 
@@ -372,7 +387,26 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
       return data.id;
     };
+    $scope.main.setDefault = function(msg) {
+      $timeout(function() {
+        $scope.main.status.show = 'show';
+        $scope.main.message.default = msg;
+      });
+    };
 
+    $scope.main.checkUpdates = function() {
+      requestAsync('https://raw.githubusercontent.com/yboyer/re-discover/master/package.json', function(status, res) {
+        if (status === 200) {
+          var version = JSON.parse(res).version;
+          if (version !== gui.App.manifest.version) {
+            $scope.main.setDefault('<div ng-click="main.openReleasePage(\'' + version + '\')" class="link">Update available ! (v' + version + ')</div>');
+          }
+        }
+      });
+    };
+    $scope.main.openReleasePage = function(tag) {
+      gui.Shell.openExternal('https://github.com/yboyer/re-discover/releases/tag/v' + tag);
+    };
 
     $scope.main.updateDatabase = function(callback) {
       if ($scope.main.databaseBusy) {
@@ -485,15 +519,15 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           var haveDuplicate = docs[d].duplicates && docs[d].duplicates.length !== 0;
           var isMissing = docs[d].missing;
 
-          if ($scope.main.typeSections[0].indexOf(type) == -1) {
+          if ($scope.main.typeSections[0].indexOf(type) === -1) {
             $scope.main.typeSections[0].push(type);
           }
 
-          if ($scope.main.typeSections[1].indexOf('Duplicate') == -1 && haveDuplicate) {
+          if ($scope.main.typeSections[1].indexOf('Duplicate') === -1 && haveDuplicate) {
             $scope.main.typeSections[1].push('Duplicate');
           }
 
-          if ($scope.main.typeSections[1].indexOf('Missing') == -1 && isMissing) {
+          if ($scope.main.typeSections[1].indexOf('Missing') === -1 && isMissing) {
             $scope.main.typeSections[1].push('Missing');
           }
 
@@ -514,7 +548,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         $scope.main.genreQuery = query;
       }
 
-      if (['Unknow', 'Duplicate'].indexOf($scope.main.type) != -1) {
+      if (['Unknow', 'Duplicate'].indexOf($scope.main.type) !== -1) {
         $scope.main.genres.length = 0;
         $timeout(function() {
           $scope.sidebar.updateScrollbar();
@@ -533,7 +567,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             break;
           }
           for (var g = genres.length - 1; g >= 0; g--) {
-            if ($scope.main.genres.indexOf(genres[g]) == -1) {
+            if ($scope.main.genres.indexOf(genres[g]) === -1) {
               $scope.main.genres.push(genres[g]);
             }
           }
@@ -548,7 +582,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       $location.search('genre', genre);
     };
     $scope.main.displayType = function(type) {
-      if (type == 'Duplicate') {
+      if (type === 'Duplicate') {
         $location.url('duplicates/' + type);
         return;
       }
@@ -570,7 +604,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           fs.mkdirSync(postersPath);
         } else {
           for (var f = files.length - 1; f >= 0; f--) {
-            if (ids.indexOf(path.parse(files[f]).name.replace('_', '')) == -1) {
+            if (ids.indexOf(path.parse(files[f]).name.replace('_', '')) === -1) {
               fs.unlink(files[f],
                 function() {
 
@@ -588,7 +622,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     // Listerners
     win.on('close', function() {
       if ($scope.main.status.show && $scope.main.status.spinner) {
-        if (confirm('The application is currentely on process.\n\nDo you want to exit the app anyway ?..')) {
+        if (window.confirm('The application is currentely on process.\n\nDo you want to exit the app anyway ?..')) {
           gui.App.quit();
         }
       } else {
@@ -611,7 +645,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     document.body.shortcut({
       key: "CtrlCmd+Shift+Delete",
       active: function() {
-        if (confirm('Do you really want to clean the app ?')) {
+        if (window.confirm('Do you really want to clean the app ?')) {
           db.remove({}, {
             multi: true
           }, function() {
@@ -654,7 +688,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       });
     }
 
-
+    $scope.main.checkUpdates();
     $scope.main.setView();
     if (localStorage.path2browse !== undefined) {
       $scope.main.updateCategories();
@@ -684,19 +718,19 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           var offsetHeight = dividers[d].offsetHeight;
 
           if (scrollTop > offsetTop - offsetHeight) {
-            if (divider.part != d) {
+            if (divider.part !== d) {
               divider.status = '';
               divider.part = d;
             }
             if (scrollTop >= offsetTop) {
-              if (divider.status == 'static') {
+              if (divider.status === 'static') {
                 return;
               }
               divider.status = 'static';
               divider.textContent = dividers[d].textContent;
               divider.style.top = '';
               divider.classList.remove('bottom');
-            } else if (divider.status != 'bottom') {
+            } else if (divider.status !== 'bottom') {
               divider.status = 'bottom';
               divider.textContent = dividers[d - 1].textContent;
               divider.style.top = offsetTop - offsetHeight + 'px';
@@ -757,7 +791,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     };
     $scope.browser.display = localStorage.display;
     $scope.browser.toggleDisplay = function() {
-      if (localStorage.display == 'list') {
+      if (localStorage.display === 'list') {
         $location.url($location.url().replace('list', 'grid'));
         localStorage.display = 'grid';
       } else {
@@ -795,7 +829,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
 
     $scope.browser.searchKD = function(e) {
-      if (e.keyCode == 27) {
+      if (e.keyCode === 27) {
         e.target.blur();
         $scope.browser.searchValue = '';
         $scope.browser.updateList();
@@ -847,15 +881,15 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         break;
       default:
         $scope.browser.query.type = $scope.browser.type;
-        if ($scope.browser.type != 'Episode') {
+        if ($scope.browser.type !== 'Episode') {
           $scope.browser.query.missing = {
             $ne: true
           };
         }
     }
     $scope.main.updateGenres(angular.copy($scope.browser.query));
-    if ($scope.browser.genre != 'All') {
-      if ($scope.browser.genre == 'Unknow') {
+    if ($scope.browser.genre !== 'All') {
+      if ($scope.browser.genre === 'Unknow') {
         $scope.browser.query.genre = {
           $exists: false
         };
@@ -870,7 +904,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       }, function(err, doc) {
         $scope.browser.searchIn = doc.title_fr;
       });
-    } else if ($scope.browser.type != 'All') {
+    } else if ($scope.browser.type !== 'All') {
       $scope.browser.searchIn = $scope.browser.type + 's';
     } else {
       $scope.browser.searchIn = '';
@@ -918,7 +952,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                   _id: _id
                 }, function(err, doc) {
                   if (doc.missing) {
-                    if (confirm('"' + doc.path + '" is missing. Do you want to remove it from the list ?')) {
+                    if (window.confirm('"' + doc.path + '" is missing. Do you want to remove it from the list ?')) {
                       if (doc.serie_id !== undefined) {
                         db.count({
                           serie_id: doc.serie_id,
@@ -1025,7 +1059,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     };
     win.on('resize', $scope.find.updateScrollbar);
     $scope.find.searchKD = function(e) {
-      if (e.keyCode == 13) {
+      if (e.keyCode === 13) {
         e.target.blur();
         var value = $scope.find.searchValue;
 
@@ -1089,7 +1123,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             spinner: true,
             text: 'Downloading small poster for “' + data.title_fr + '”...'
           });
-          tools.downloadPoster(data.poster.replace('_SIZE_', 'SY' + Math.ceil(195 * devicePixelRatio)), postersPath + '/_' + referenceId + '.jpg', function() {
+          tools.downloadPoster(data.poster.replace('_SIZE_', 'SY' + Math.ceil(195 * window.devicePixelRatio)), postersPath + '/_' + referenceId + '.jpg', function() {
             db.update({
               _id: referenceId
             }, {
@@ -1176,7 +1210,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
               spinner: true,
               text: 'Downloading small poster for “' + doc.title_fr + '”...'
             });
-            tools.downloadPoster(doc.poster_url.replace('_SIZE_', 'SY' + Math.ceil(195 * devicePixelRatio)), postersPath + '/_' + doc._id + '.jpg', function() {
+            tools.downloadPoster(doc.poster_url.replace('_SIZE_', 'SY' + Math.ceil(195 * window.devicePixelRatio)), postersPath + '/_' + doc._id + '.jpg', function() {
               db.update({
                 _id: doc._id
               }, {
@@ -1240,7 +1274,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         });
 
         data.req = requestAsync('http://api.themoviedb.org/3/tv/' + data.tmdb_id + '/season/' + season_num + '/episode/' + episode_num + '?api_key=7b5e30851a9285340e78c201c4e4ab99&language=fr', function(status, tmdbInfo) {
-          if (status == 200) {
+          if (status === 200) {
             tmdbInfo = JSON.parse(tmdbInfo);
 
             episode.tmdb_id = tmdbInfo.id;
@@ -1254,12 +1288,12 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             }
 
             data.req = requestAsync('http://api.themoviedb.org/3/tv/' + data.tmdb_id + '/season/' + season_num + '/episode/' + episode_num + '/external_ids?api_key=7b5e30851a9285340e78c201c4e4ab99', function(status, tmdbInfo) {
-              if (status == 200) {
+              if (status === 200) {
                 tmdbInfo = JSON.parse(tmdbInfo);
                 episode.imdb_id = tmdbInfo.imdb_id;
 
                 data.req = requestAsync('http://www.omdbapi.com/?i=' + data.imdb_id + '&Season=' + season_num + '&Episode=' + episode_num + '&plot=short&r=json', function(status, omdbInfo) {
-                  if (status == 200) {
+                  if (status === 200) {
                     omdbInfo = JSON.parse(omdbInfo);
                     if (omdbInfo.Response !== "False") {
                       var poster = omdbInfo.Poster;
@@ -1297,7 +1331,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                             spinner: true,
                             text: 'Downloading small poster for “' + episode.title_fr + '”...'
                           });
-                          tools.downloadPoster(episode.poster_url.replace('_SIZE_', 'SY' + Math.ceil(195 * devicePixelRatio)), postersPath + '/_' + referenceId + '.jpg', function() {
+                          tools.downloadPoster(episode.poster_url.replace('_SIZE_', 'SY' + Math.ceil(195 * window.devicePixelRatio)), postersPath + '/_' + referenceId + '.jpg', function() {
                             db.update({
                               _id: referenceId
                             }, {
@@ -1354,14 +1388,14 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       $scope.find.abort();
 
       $scope.find.tmdbReq = requestAsync('https://www.themoviedb.org/search/remote/multi?query=' + name, function(status, results) {
-        if (status == 200) {
+        if (status === 200) {
           results = JSON.parse(results);
 
           $scope.find.results.length = 0;
 
           for (var r = 0, l = results.length; r < l; r++) {
             var date = results[r].release_date || results[r].first_air_date;
-            var type = results[r].media_type == 'tv' ? 'serie' : results[r].media_type;
+            var type = results[r].media_type === 'tv' ? 'serie' : results[r].media_type;
 
 
             if (date) {
@@ -1385,15 +1419,15 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       });
     };
     $scope.find.improveResult = function(index) {
-      if ($scope.find.results[index].type == 'Movie') {
+      if ($scope.find.results[index].type === 'Movie') {
         $scope.find.results[index].enTmdbReq = requestAsync('http://api.themoviedb.org/3/movie/' + $scope.find.results[index].tmdb_id + '?api_key=7b5e30851a9285340e78c201c4e4ab99&language=en', function(status, tmdbInfo) {
-          if (status == 200) {
+          if (status === 200) {
             tmdbInfo = JSON.parse(tmdbInfo);
             $scope.find.results[index].title_en = tmdbInfo.title;
             $scope.find.results[index].imdb_id = tmdbInfo.imdb_id;
 
             $scope.find.results[index].omdbReq = requestAsync('http://www.omdbapi.com/?i=' + tmdbInfo.imdb_id + '&plot=short&r=json', function(status, omdbInfo) {
-              if (status == 200) {
+              if (status === 200) {
                 omdbInfo = JSON.parse(omdbInfo);
                 if (omdbInfo.Response !== "False") {
                   var poster = omdbInfo.Poster;
@@ -1422,7 +1456,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         });
       } else {
         $scope.find.results[index].enTmdbReq = requestAsync('http://api.themoviedb.org/3/tv/' + $scope.find.results[index].tmdb_id + '?api_key=7b5e30851a9285340e78c201c4e4ab99&language=en', function(status, tmdbInfo) {
-          if (status == 200) {
+          if (status === 200) {
             tmdbInfo = JSON.parse(tmdbInfo);
             $scope.find.results[index].title_en = tmdbInfo.name;
             $scope.find.results[index].seasons = tmdbInfo.seasons;
@@ -1434,12 +1468,12 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
 
             $scope.find.results[index].tmdbReq = requestAsync('http://api.themoviedb.org/3/tv/' + $scope.find.results[index].tmdb_id + '/external_ids?api_key=7b5e30851a9285340e78c201c4e4ab99&language=en', function(status, tmdbInfo) {
-              if (status == 200) {
+              if (status === 200) {
                 tmdbInfo = JSON.parse(tmdbInfo);
                 $scope.find.results[index].imdb_id = tmdbInfo.imdb_id;
 
                 $scope.find.results[index].omdbReq = requestAsync('http://www.omdbapi.com/?i=' + tmdbInfo.imdb_id + '&plot=short&r=json', function(status, omdbInfo) {
-                  if (status == 200) {
+                  if (status === 200) {
                     omdbInfo = JSON.parse(omdbInfo);
                     if (omdbInfo.Response !== "False") {
                       document.querySelector('.choose').style.height = '';
@@ -1486,7 +1520,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     };
 
     $scope.find.show = function(e, elem) {
-      if (elem.type == 'Serie' || elem.missing) {
+      if (elem.type === 'Serie' || elem.missing) {
         return;
       }
 
@@ -1531,7 +1565,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         type: $scope.browser.type
       };
 
-      if ($scope.browser.type == 'Unknow') {
+      if ($scope.browser.type === 'Unknow') {
         query.type = {
           $exists: false
         };
