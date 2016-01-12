@@ -57,7 +57,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           }
         });
       },
-      _removeEmptyElem: function(doc, callback, removing) {
+      _removeEmptyElem: function(doc, done, step) {
         var tools = this;
 
         db.remove({
@@ -75,16 +75,16 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
               duplicates: []
             }
           }, {}, function() {
-            if (removing) {
-              removing(tools.totalMissing);
+            if (step) {
+              step('Removing', tools.totalMissing);
             }
             if (--tools.totalMissing === 0) {
-              callback();
+              done();
             }
           });
         });
       },
-      _updateMissings: function(paths, callback, removing) {
+      _updateMissings: function(paths, done, step) {
         var tools = this;
 
         db.find({
@@ -103,14 +103,14 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           if (docs.length !== 0) {
             tools.totalMissing = docs.length;
             for (var d = docs.length - 1; d >= 0; d--) {
-              tools._removeEmptyElem(docs[d], callback, removing);
+              tools._removeEmptyElem(docs[d], done, step);
             }
           } else {
-            callback();
+            done();
           }
         });
       },
-      updateDatabase: function(callback, step, adding, removing) {
+      updateDatabase: function(option) {
         var path2browse = JSON.parse(localStorage.path2browse || '[]');
         var tools = this;
 
@@ -118,7 +118,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           var total = files.length;
 
           if (files.length === 0) {
-            tools._updateMissings(files, callback, removing);
+            tools._updateMissings(files, option.done, option.step);
             return;
           }
 
@@ -189,7 +189,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
               if (update.$set !== undefined && angular.equals(update.$set, dbFilenames[filename])) {
                 if (--total === 0) {
-                  tools._updateMissings(paths, callback, removing);
+                  tools._updateMissings(paths, option.done, option.step);
                 }
               } else {
                 db.update({
@@ -201,18 +201,19 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                 }, update, {
                   upsert: true
                 }, function() {
-                  if (adding) {
-                    adding(total);
+                  console.log(this)
+                  if (option.step) {
+                    option.step('Adding', total);
                   }
                   // Find missing files
                   if (--total === 0) {
-                    tools._updateMissings(paths, callback, removing);
+                    tools._updateMissings(paths, option.done, option.step);
                   }
                 });
               }
             }
           });
-        }, step);
+        }, option.browsing);
       },
       removeEntry: function(id, callback) {
         fs.unlink(postersPath + '/' + id + '.jpg', function() {});
@@ -417,38 +418,36 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
       $scope.main.databaseBusy = true;
       var idMsg;
-      tools.updateDatabase(function() {
-        $scope.main.databaseBusy = false;
-        $scope.main.setMessage({
-          removeId: idMsg,
-          text: 'Database updated'
-        });
+      tools.updateDatabase({
+        done: function() {
+          $scope.main.databaseBusy = false;
+          $scope.main.setMessage({
+            removeId: idMsg,
+            text: 'Database updated'
+          });
 
-        $scope.main.updateSideBar();
+          $scope.main.updateSideBar();
 
-        if (callback) {
-          callback();
-        } else {
-          $scope.$broadcast('updateList');
+          if (callback) {
+            callback();
+          } else {
+            $scope.$broadcast('updateList');
+          }
+        },
+        browsing: function(dir) {
+          idMsg = $scope.main.setMessage({
+            removeId: idMsg,
+            spinner: true,
+            text: 'Updating the database... (Browsing folder n°' + (++dirs) + ': “' + /([^(\/|\\)]*)\/*$/.exec(dir)[1] + '”)'
+          });
+        },
+        step: function(action, nb) {
+          idMsg = $scope.main.setMessage({
+            removeId: idMsg,
+            spinner: true,
+            text: 'Updating the database... (' + action + ' file n°' + nb + ')'
+          });
         }
-      }, function(dir) {
-        idMsg = $scope.main.setMessage({
-          removeId: idMsg,
-          spinner: true,
-          text: 'Updating the database... (Browsing folder n°' + (++dirs) + ': “' + /([^(\/|\\)]*)\/*$/.exec(dir)[1] + '”)'
-        });
-      }, function(nb) {
-        idMsg = $scope.main.setMessage({
-          removeId: idMsg,
-          spinner: true,
-          text: 'Updating the database... (Adding file n°' + nb + ')'
-        });
-      }, function(nb) {
-        idMsg = $scope.main.setMessage({
-          removeId: idMsg,
-          spinner: true,
-          text: 'Updating the database... (Removing file n°' + nb + ')'
-        });
       });
     };
 
@@ -938,52 +937,54 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
               text: 'File missing... Updating database...'
             });
 
-            tools.updateDatabase(function() {
-              $scope.main.setMessage({
-                removeId: idMsg,
-                text: 'Database updated'
-              });
+            tools.updateDatabase({
+              done: function() {
+                $scope.main.setMessage({
+                  removeId: idMsg,
+                  text: 'Database updated'
+                });
 
-              $scope.main.updateSideBar();
+                $scope.main.updateSideBar();
 
-              // Update the display the missing or not element
-              $scope.browser.updateList(function() {
-                db.findOne({
-                  _id: _id
-                }, function(err, doc) {
-                  if (doc.missing) {
-                    if (window.confirm('"' + doc.path + '" is missing. Do you want to remove it from the list ?')) {
-                      if (doc.serie_id !== undefined) {
-                        db.count({
-                          serie_id: doc.serie_id,
-                          _id: {
-                            $ne: _id
-                          }
-                        }, function(err, count) {
-                          if (count === 0) {
-                            tools.removeEntry(doc.serie_id, function() {
-                              $scope.main.updateSideBar();
-                              $location.url(localStorage.display + '/All');
+                // Update the display the missing or not element
+                $scope.browser.updateList(function() {
+                  db.findOne({
+                    _id: _id
+                  }, function(err, doc) {
+                    if (doc.missing) {
+                      if (window.confirm('"' + doc.path + '" is missing. Do you want to remove it from the list ?')) {
+                        if (doc.serie_id !== undefined) {
+                          db.count({
+                            serie_id: doc.serie_id,
+                            _id: {
+                              $ne: _id
+                            }
+                          }, function(err, count) {
+                            if (count === 0) {
+                              tools.removeEntry(doc.serie_id, function() {
+                                $scope.main.updateSideBar();
+                                $location.url(localStorage.display + '/All');
+                              });
+                            }
+                          });
+                        }
+
+                        tools.removeEntry(_id, function(err, count) {
+                          if (count !== 0) {
+                            $scope.main.setMessage({
+                              text: 'Removed'
                             });
+                            $scope.browser.updateList();
+                            $scope.main.updateSideBar();
                           }
                         });
                       }
-
-                      tools.removeEntry(_id, function(err, count) {
-                        if (count !== 0) {
-                          $scope.main.setMessage({
-                            text: 'Removed'
-                          });
-                          $scope.browser.updateList();
-                          $scope.main.updateSideBar();
-                        }
-                      });
+                    } else {
+                      $scope.browser.startPlayer(doc.path);
                     }
-                  } else {
-                    $scope.browser.startPlayer(doc.path);
-                  }
+                  });
                 });
-              });
+              }
             });
             return false;
           } else if (doc.missing) {
