@@ -1512,6 +1512,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       } else {
         $scope.find.scrollElement = document.querySelector('.popup-wrapper.search #results');
         Ps.initialize($scope.find.scrollElement, psConfig);
+        $scope.find.initialized = true;
       }
 
       // TODO: improve focus
