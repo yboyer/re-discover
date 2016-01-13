@@ -201,7 +201,6 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                 }, update, {
                   upsert: true
                 }, function() {
-                  console.log(this)
                   if (option.step) {
                     option.step('Adding', total);
                   }
