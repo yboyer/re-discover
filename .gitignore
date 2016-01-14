@@ -1,6 +1,5 @@
 # nwjs
-nw-builds/
-nw-cache/
+nw-*/
 
 # Others
 core/
