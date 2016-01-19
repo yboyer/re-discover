@@ -1,0 +1,12 @@
+{
+  "browser": true,
+  "node": true,
+  "unused": true,
+  "undef": true,
+  "curly": true,
+  "latedef": "nofunc",
+  "noarg": true,
+  "boss": true,
+  "eqeqeq": true,
+  "eqnull": true
+}

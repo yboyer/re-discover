@@ -1,4 +1,3 @@
-var path = require('path');
 var fs = require('fs');
 var spawn = require('child_process').spawn;
 
@@ -17,7 +16,6 @@ var ngHtml2Js = require('gulp-ng-html2js');
 var minifyHtml = require('gulp-minify-html');
 var del = require('del');
 var merge = require('merge-stream');
-var jshint = require('gulp-jshint');
 var notifier = require('node-notifier');
 var gnotifier = require('gulp-notify');
 
@@ -51,18 +49,6 @@ var src = {
     html: ['src/app/**/*.tpl.html'],
     js: ['src/app/**/*.tpl.html']
   }
-};
-var jshintrc = {
-  browser: true,
-  node: true,
-  unused: true,
-  undef: true,
-  curly: true,
-  latedef: 'nofunc',
-  noarg: true,
-  boss: true,
-  eqeqeq: true,
-  eqnull: true
 };
 
 var notify = function(msg) {
@@ -227,12 +213,6 @@ gulp.task('scss', function() {
     .pipe(concat('app.css'))
     .pipe(gulp.dest('core'))
     .pipe(gnotify('scss'));
-});
-
-gulp.task('jshint', function() {
-  gulp.src(src.js)
-    .pipe(jshint(jshintrc))
-    .pipe(jshint.reporter('jshint-stylish'));
 });
 
 gulp.task('bump', function() {
