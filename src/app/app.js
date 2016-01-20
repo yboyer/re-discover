@@ -473,19 +473,24 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             $scope.main.setHome();
             return;
           } else {
-            $location.url(localStorage.display + '/All');
+            $scope.main.displayType('All');
           }
         } else {
           if ('All' === localStorage.type) {
             $location.url(localStorage.display + '/' + localStorage.type);
           } else {
             for (var d = docs.length - 1; d >= 0; d--) {
-              if ('All' === localStorage.type || docs[d].type === localStorage.type) {
+              if (
+                'All' === localStorage.type ||
+                docs[d].type === localStorage.type ||
+                'Missing' === localStorage.type && docs[d].missing === true ||
+                'Unknow' === localStorage.type && docs[d].type === undefined
+              ) {
                 $location.url(localStorage.display + '/' + localStorage.type);
                 return;
               }
             }
-            $location.url(localStorage.display + '/Unknow');
+            $scope.main.displayType('Unknow');
           }
         }
       });
@@ -585,7 +590,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         return;
       }
 
-      localStorage.type = type;
+      localStorage.type = type.match(/^\w+/)[0];
       $location.url(localStorage.display + '/' + type);
     };
 
@@ -962,7 +967,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                             if (count === 0) {
                               tools.removeEntry(doc.serie_id, function() {
                                 $scope.main.updateSideBar();
-                                $location.url(localStorage.display + '/All');
+                                $scope.main.displayType('All');
                               });
                             }
                           });
@@ -1003,7 +1008,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     };
     $scope.browser.goToEpisodes = function(e, id) {
       e.stopPropagation();
-      $location.url(localStorage.display + '/Episode?serie_id=' + id + '&sorting=season');
+      $scope.main.displayType('Episode?serie_id=' + id + '&sorting=season');
     };
 
     $scope.browser.dirname = function(filePath) {
@@ -1573,7 +1578,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
       db.findOne(query, function(err, doc) {
         if (doc === null) {
-          $location.url(localStorage.display + '/All');
+          $scope.main.displayType('All');
         }
       });
     };
