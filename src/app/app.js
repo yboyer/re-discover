@@ -490,7 +490,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                 return;
               }
             }
-            $scope.main.displayType('Unknow');
+            $scope.main.displayType('All');
           }
         }
       });
@@ -951,42 +951,45 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                 $scope.main.updateSideBar();
 
                 // Update the display the missing or not element
-                $scope.browser.updateList(function() {
-                  db.findOne({
-                    _id: _id
-                  }, function(err, doc) {
-                    if (doc.missing) {
-                      if (window.confirm('"' + doc.path + '" is missing. Do you want to remove it from the list ?')) {
-                        if (doc.serie_id !== undefined) {
-                          db.count({
-                            serie_id: doc.serie_id,
-                            _id: {
-                              $ne: _id
-                            }
-                          }, function(err, count) {
-                            if (count === 0) {
-                              tools.removeEntry(doc.serie_id, function() {
-                                $scope.main.updateSideBar();
-                                $scope.main.displayType('All');
+                $scope.browser.updateList({
+                  callback: function() {
+                    db.findOne({
+                      _id: _id
+                    }, function(err, doc) {
+                      console.log('doc', doc);
+                      if (doc.missing) {
+                        if (window.confirm('"' + doc.path + '" is missing. Do you want to remove it from the list ?')) {
+                          if (doc.serie_id !== undefined) {
+                            db.count({
+                              serie_id: doc.serie_id,
+                              _id: {
+                                $ne: _id
+                              }
+                            }, function(err, count) {
+                              if (count === 0) {
+                                tools.removeEntry(doc.serie_id, function() {
+                                  $scope.main.updateSideBar();
+                                  $scope.main.displayType('All');
+                                });
+                              }
+                            });
+                          }
+
+                          tools.removeEntry(_id, function(err, count) {
+                            if (count !== 0) {
+                              $scope.main.setMessage({
+                                text: 'Removed'
                               });
+                              $scope.browser.updateList();
+                              $scope.main.updateSideBar();
                             }
                           });
                         }
-
-                        tools.removeEntry(_id, function(err, count) {
-                          if (count !== 0) {
-                            $scope.main.setMessage({
-                              text: 'Removed'
-                            });
-                            $scope.browser.updateList();
-                            $scope.main.updateSideBar();
-                          }
-                        });
+                      } else {
+                        $scope.browser.startPlayer(doc.path);
                       }
-                    } else {
-                      $scope.browser.startPlayer(doc.path);
-                    }
-                  });
+                    });
+                  }
                 });
               }
             });
@@ -1590,9 +1593,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       console.time('List updated');
 
       if (options === undefined) {
-        options = {
-          apply: true
-        };
+        options = {};
       }
 
       var searchText = $scope.browser.searchValue.removeDiacritics();
