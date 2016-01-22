@@ -1,3 +1,6 @@
+/*global fs:false, path:false */
+
+/* exported requestAsync */
 function requestAsync(url, callback) {
   var req = new XMLHttpRequest();
 
@@ -14,6 +17,7 @@ function requestAsync(url, callback) {
   return req;
 }
 
+/* exported browseDirectories */
 function browseDirectories(paths, cb, step) {
   var total = paths.length;
   var files = [];
@@ -71,6 +75,7 @@ function browseDirectory(dir, isExt, done, step) {
 }
 
 
+/* exported readableBytes */
 function readableBytes(size) {
   if (size < 1024) {
     return size + ' Mo';

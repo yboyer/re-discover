@@ -8,5 +8,12 @@
   "noarg": true,
   "boss": true,
   "eqeqeq": true,
-  "eqnull": true
+  "eqnull": true,
+  "predef": [
+    "angular",
+    "Ps",
+    "requestAsync",
+    "browseDirectories",
+    "readableBytes"
+  ]
 }

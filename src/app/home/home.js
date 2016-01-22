@@ -1,3 +1,5 @@
+/*global path:false */
+
 angular.module('home', ['ngRoute'])
   .config(['$routeProvider', function($routeProvider) {
     $routeProvider.when('/home', {
