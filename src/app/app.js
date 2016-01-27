@@ -956,7 +956,6 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                     db.findOne({
                       _id: _id
                     }, function(err, doc) {
-                      console.log('doc', doc);
                       if (doc.missing) {
                         if (window.confirm('"' + doc.path + '" is missing. Do you want to remove it from the list ?')) {
                           if (doc.serie_id !== undefined) {
