@@ -246,7 +246,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             a.sortValue = a.name.charAt(0).removeDiacritics().toUpperCase();
             b.sortValue = b.name.charAt(0).removeDiacritics().toUpperCase();
 
-            return a.name.localeCompare(b.name);
+            return Intl.Collator().compare(a.name, b.name);
           });
           break;
 
