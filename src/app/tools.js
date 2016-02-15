@@ -27,8 +27,10 @@ function browseDirectories(paths, cb, step) {
   var handler = function(err, f) {
     if (!err) {
       files = f.concat(files);
+    } else {
+      console.error(err.message);
     }
-    if (--total === 0) {
+    if (!--total) {
       cb(files);
     }
   };
@@ -56,12 +58,19 @@ function browseDirectory(dir, isExt, done, step) {
       fs.stat(file, function(err, stat) {
         if (stat && stat.isDirectory()) {
           browseDirectory(file, isExt, function(err, res) {
-            files = files.concat(res);
+            if (!err) {
+              files = files.concat(res);
+            } else {
+              console.error(err.message);
+            }
             if (!--pending) {
               done(null, files);
             }
           }, step);
         } else {
+          if (err) {
+            console.error(err.message);
+          }
           if (isExt.test(path.extname(file))) {
             files.push(file);
           }
