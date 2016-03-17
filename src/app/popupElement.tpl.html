@@ -4,7 +4,7 @@
     <div class="content">
       <div class="poster {{display.element.poster_url ? 'clickable' : ''}}" style="{{display.element.posterBackgroundUrl}}" ng-click="display.element.poster_url && display.openPoster(display.element._id)" title=" {{display.element.poster_url ? 'Open in real size' : ''}}"></div>
       <div class="infos">
-        <div class="title">{{display.element.title_fr}}<span ng-if="(title = display.element.title || display.element.title_en) && title != display.element.title_fr"> ({{title}})</span></div>
+        <div class="title">{{display.element.title_fr || display.element.title_en}}<span ng-if="(title = display.element.title || display.element.title_en) && (display.element.title_fr && title != display.element.title_fr)"> ({{title}})</span></div>
         <div class="date" ng-hide="!display.element.runtime">
           <span>{{display.element.runtime}}</span> - <span class="quality">{{display.element.quality}}</span>
         </div>
@@ -29,7 +29,7 @@
             <div></div>
             <div>{{display.element.abstract_fr || display.element.abstract_en || 'N/A'}}</div>
             <div></div>
-            <div class="align-right"><span ng-click="display.openIMDB(display.element.imdb_id);" class="external" title="Display on IMDB.com">IMDB</span> / <span ng-click="display.openTMBD(display.element.tmdb_id);" class="external" title="Display on TheMovieDB.org">TMDB</span></div>
+            <div class="align-right"><span ng-click="display.openIMDB()" class="external" title="Display on IMDB.com">IMDB</span> / <span ng-click="display.openTMBD()" class="external" title="Display on TheMovieDB.org">TMDB</span></div>
           </div>
         </div>
       </div>

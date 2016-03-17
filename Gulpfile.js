@@ -132,7 +132,7 @@ gulp.task('releaseOsx', ['package'], function() {
     if (!/osx/.test(platform)) {
       return;
     }
-    fs.writeFileSync(nwConf.buildDir + '/' + appName + '/' + platform + '/Release v' + appVersion);
+    fs.writeFileSync(nwConf.buildDir + '/' + appName + '/' + platform + '/Release v' + appVersion, '');
     m.add(gulp.src(nwConf.buildDir + '/' + appName + '/' + platform + '/**')
       .pipe(zip(outputName(platform) + '.zip'))
       .pipe(debug({
