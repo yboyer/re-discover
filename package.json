@@ -1,7 +1,7 @@
 {
   "name": "re-discover",
   "description": "A movie indexer for local files.",
-  "version": "0.4.1",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/yboyer/re-discover.git"
