@@ -1075,9 +1075,11 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       }
     };
     win.on('resize', $scope.find.updateScrollbar);
-    $scope.find.searchKD = function(e) {
-      if (e.keyCode === 13) {
-        e.target.blur();
+    $scope.find.searchKD = function(e, force) {
+      if (force || e.keyCode === 13) {
+        if (e) {
+          e.target.blur();
+        }
         var value = $scope.find.searchValue;
 
         $scope.find.searchInfo = 'Searching “' + value + '”...';
@@ -1568,6 +1570,8 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         Ps.initialize($scope.find.scrollElement, psConfig);
         $scope.find.initialized = true;
       }
+
+      $scope.find.searchKD(null, true);
 
       // TODO: improve focus
       setTimeout(function() {
