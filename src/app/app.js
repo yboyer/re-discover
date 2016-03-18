@@ -1130,6 +1130,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           title_en: data.title_en,
           type: data.type,
           date: data.date,
+          metascore: data.metascore,
           updated: true
         }
       }, {}, function() {
@@ -1330,6 +1331,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                       episode.poster_url = poster;
                       episode.runtime = omdbInfo.Runtime;
                       episode.writer = omdbInfo.Writer.split(', ');
+                      episode.metascore = parseInt(omdbInfo.Metascore);
                       episode.type = 'Episode';
                       episode.updated = true;
 
@@ -1460,6 +1462,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                   $scope.find.results[index].type = 'Movie';
                   $scope.find.results[index].abstract_en = omdbInfo.Plot;
                   $scope.find.results[index].runtime = omdbInfo.Runtime;
+                  $scope.find.results[index].metascore = parseInt(omdbInfo.Metascore);
                   $scope.find.results[index].director = omdbInfo.Director;
                   $scope.find.results[index].genre = omdbInfo.Genre.split(', ');
                   $scope.find.results[index].actors = omdbInfo.Actors.split(', ');

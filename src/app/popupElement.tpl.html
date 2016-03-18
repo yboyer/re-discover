@@ -10,6 +10,8 @@
         </div>
         <div class="more">
           <div class="th">
+            <div title="Metascore from metacritic.com">Metascore:</div>
+            <div></div>
             <div>Release:</div>
             <div>Genre:</div>
             <div>Langues:</div>
@@ -20,6 +22,8 @@
             <div>Abstract:</div>
           </div>
           <div>
+            <div><span class="{{display.element.metascore ? 'meta' : ''}} {{display.element.metascore >= 60 ? 'good' : display.element.metascore >= 40 ? 'ok' : display.element.metascore >= 0 ? 'bad' : ''}}">{{display.element.metascore || 'N/A'}}</span></div>
+            <div></div>
             <div>{{display.element.date || 'N/A'}}</div>
             <div>{{display.element.genre.join(', ') || 'N/A'}}</div>
             <div>{{display.element.languages.join(', ') || 'N/A'}}</div>

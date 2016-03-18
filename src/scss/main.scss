@@ -1288,6 +1288,25 @@ header {
                 flex-shrink: 0;
               }
 
+              .meta {
+                width: 28px;
+                height: 18px;
+                display: inline-block;
+                text-align: center;
+                font-weight: 600;
+                color: #000;
+
+                &.good {
+                  background-color: #66CC33;
+                }
+                &.ok {
+                  background-color: #FFCC33;
+                }
+                &.bad {
+                  background-color: #FF0000;
+                }
+              }
+
               .align-right {
                 text-align: right;
 
