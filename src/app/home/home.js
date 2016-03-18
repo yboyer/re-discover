@@ -41,6 +41,9 @@ angular.module('home', ['ngRoute'])
     }, {
       ext: 'iso',
       checked: exts.indexOf('iso') !== -1
+    }, {
+      ext: 'part',
+      checked: exts.indexOf('part') !== -1
     }];
     $scope.$watch('home.checkboxes', function() {
       $scope.home.updateSubmitStatus();
