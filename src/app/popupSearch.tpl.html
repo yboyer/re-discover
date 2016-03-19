@@ -1,9 +1,36 @@
 <div class="popup-wrapper search" ng-mousedown="find.close()">
   <div class="choose" ng-mousedown="$event.stopPropagation();">
-    <div id="search"><input placeholder="{{find.searchPlaceholder}}" ng-keydown="find.searchKD($event)" ng-model="find.searchValue"></div>
+    <div id="search"><input placeholder="{{find.searchPlaceholder}}" ng-keydown="find.searchKD($event)" ng-model="find.searchValue"><div id="searchMemo">{{find.searchPlaceholder}}</div></div>
     <div id="info" class="{{find.spinner}}">{{find.searchInfo}}</div>
     <div id="results">
       <div class="nothingFound" ng-show="find.listOk && find.results.length == 0">Nothing found...</div>
+      <div class="res {{res.updated == true ? 'done' : ''}} highlight" ng-repeat="res in find.resultsHighlight | orderBy:'-date'" ng-click="(res.type == 'Movie' && find.updateMovie(res)) || find.updateEpisode(res, res.episodeInfo.season, res.episodeInfo.episode)" title="{{res.plot_fr}}">
+        <div class="poster" style="background-image: url({{res.poster.replace('_SIZE_', 'SX80')}})"></div>
+        <div class="info">
+          <div class="title" title="{{res.title_fr}} ({{res.title}})">{{res.title_fr}}</div>
+          <div class="dlt">
+            <div>{{(res.date || res.date_first).getFullYear()}} - {{res.runtime || res.date_last.getFullYear()}}</div>
+            <div>{{res.type}}</div>
+          </div>
+        </div>
+        <div class="more">
+          <div class="th">
+            <div ng-hide="{{res.type == 'Serie'}}">Director:</div>
+            <div>Actors:</div>
+            <div>Genre:</div>
+            <div></div>
+            <div ng-show="{{res.episodeInfo}}">&gt; Episode:</div>
+          </div>
+          <div>
+            <div ng-hide="{{res.type == 'Serie'}}">{{res.director}}</div>
+            <div>{{res.actors.join(', ')}}</div>
+            <div>{{res.genre.join(', ')}}</div>
+            <div></div>
+            <div ng-show="{{res.episodeInfo}}">S{{res.episodeInfo.displaySeason}}E{{res.episodeInfo.displayEpisode}}</div>
+          </div>
+        </div>
+        <div class="update">Searching...</div>
+      </div>
       <div class="res {{res.updated == true ? 'done' : ''}} {{res.type.toLowerCase()}}" ng-repeat="res in find.results | orderBy:'-date'" ng-click="res.type == 'Movie' && find.updateMovie(res)" title="{{res.plot_fr}}">
         <div class="poster" style="background-image: url({{res.poster.replace('_SIZE_', 'SX80')}})"></div>
         <div class="info">

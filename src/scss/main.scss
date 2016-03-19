@@ -1002,25 +1002,33 @@ header {
 
 
         #search {
-          height: 50px;
+          height: 70px;
           background-color: #FFF;
           line-height: 50px;
           padding-left: 45px;
           background-image: url(assets/icons/search_dark.svg);
           background-size: 19px;
           background-repeat: no-repeat;
-          background-position: 15px 50%;
+          background-position: 15px 16px;
           font-weight: 400;
-        }
-        #search input {
-          border-style: none;
-          font-family: inherit;
-          font-size: inherit;
-          height: 100%;
-          padding: 0;
-          background-color: rgba(0,0,0,0);
-          outline: 0;
-          width: 100%;
+
+          input {
+            border-style: none;
+            font-family: inherit;
+            font-size: inherit;
+            height: 50px;
+            padding: 0;
+            background-color: rgba(0,0,0,0);
+            outline: 0;
+            width: 100%;
+          }
+
+          #searchMemo {
+            color: #696969;
+            font-size: 12px;
+            line-height: 8px;
+            margin-left: 6px;
+          }
         }
 
         #info {
@@ -1049,7 +1057,7 @@ header {
           color: #989898;
           font-weight: 600;
           overflow: auto;
-          height: calc(100% - 105px);
+          height: calc(100% - 125px);
           min-height: 190px;
           position: relative;
 
@@ -1071,7 +1079,13 @@ header {
             color: #646464;
             flex-wrap: wrap;
 
-            &.movie {
+            &.highlight {
+              box-shadow: inset 3px 0 0 0 rgba(0, 255, 197, 0.4), 0 1px #222,0 2px #343434;
+              background-color: rgba(0, 255, 197, 0.025);
+            }
+
+
+            &.movie, &.highlight {
               cursor: pointer;
 
               &:hover {
@@ -1121,11 +1135,14 @@ header {
               line-height: 15px;
               flex: 1 calc(100% - 320px);
 
+              div {
+                min-height: 15px;
+              }
+
               :not(.th) div {
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
-                height: 15px;
               }
 
               .th {

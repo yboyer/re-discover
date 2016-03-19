@@ -13,6 +13,7 @@ Fast, simple and easy to use: another intuitive way to discover or rediscover mo
 
 [Download](https://github.com/yboyer/re-discover/releases/latest) the app, unzip, and move it to the applications folder.
 
+- `2016-03-17` [`v0.4.1`](https://github.com/yboyer/re-discover/releases/tag/v1.0.0)
 - `2016-01-13` [`v0.4.1`](https://github.com/yboyer/re-discover/releases/tag/v0.4.1)
 - `2016-01-13` [`v0.4.0`](https://github.com/yboyer/re-discover/releases/tag/v0.4.0)
 - `2016-01-10` [`v0.3.1`](https://github.com/yboyer/re-discover/releases/tag/v0.3.1)
