@@ -727,6 +727,12 @@ header {
         }
       }
 
+      &.readed {
+        .title {
+          color: #97AAF5 !important;
+        }
+      }
+
       .poster {
         display: none;
         height: 75px;
@@ -877,6 +883,10 @@ header {
         opacity: 0.6;
       }
 
+      &.readed .title {
+        color: #7F95EF !important;
+        box-shadow: 0 -2px 0 #7F95EF !important;
+      }
 
       .poster{
         cursor: pointer;

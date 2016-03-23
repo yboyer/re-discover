@@ -6,7 +6,7 @@
       <div class="divider static" ng-hide="browser.elements.length == 0">{{browser.staticValue}}</div>
       <div ng-repeat="elem in browser.elements | limitTo:browser.limitElements track by elem._id">
         <div class="divider" ng-if="elem.sortValue != browser.elements[$index-1].sortValue">{{elem.sortValue}}</div>
-        <div class="elem {{elem.missing ? 'missing' : ''}} {{elem.updated ? 'full' : ''}} {{elem.type.toLowerCase()}}" ng-click="display.show($event, elem._id)">
+        <div class="elem {{elem.missing ? 'missing' : ''}} {{elem.updated ? 'full' : ''}} {{elem.type.toLowerCase()}} {{elem.readed ? 'readed' : ''}}" ng-click="display.show($event, elem._id)">
           <div class="poster" ng-click="elem.type != 'Serie' ? browser.play($event, elem._id) : browser.goToEpisodes($event, elem._id)" style="{{elem.poster}}">
             <div class="overlay {{elem.type != 'Serie' ? 'play' : 'next'}}"></div>
           </div>

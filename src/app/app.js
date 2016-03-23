@@ -919,6 +919,17 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     }
 
 
+    function setRead(_id) {
+      db.update({
+        _id: _id
+      }, {
+        $set: {
+          readed: true
+        }
+      }, {}, function() {
+        $scope.browser.updateList();
+      });
+    }
 
     $scope.browser.startPlayer = function(filePath) {
       if (localStorage.playerPath) {
@@ -991,6 +1002,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                         }
                       } else {
                         $scope.browser.startPlayer(doc.path);
+                        setRead(doc._id);
                       }
                     });
                   }
@@ -1010,6 +1022,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
             });
           }
           $scope.browser.startPlayer(doc.path);
+          setRead(doc._id);
         });
       });
     };
@@ -1075,10 +1088,10 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
     $scope.find.results = [];
     $scope.find.resultsHighlight = [];
-    $scope.find.resetHeight = function(){
+    $scope.find.resetHeight = function() {
       document.querySelector('.choose').style.height = '';
     };
-    $scope.find.updateHeight = function(){
+    $scope.find.updateHeight = function() {
       document.querySelector('.choose').style.height = document.querySelector('.choose #results').offsetHeight + 125 + 'px';
     };
     $scope.find.updateScrollbar = function() {
@@ -1561,7 +1574,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                     $scope.find.results[index].updated = true;
 
                     // Highlight
-                    if ($scope.find.results[index].seasons.length >= highlight.season && $scope.find.results[index].seasons[highlight.season-1].episode_count >= highlight.episode) {
+                    if ($scope.find.results[index].seasons.length >= highlight.season && $scope.find.results[index].seasons[highlight.season - 1].episode_count >= highlight.episode) {
                       $scope.find.resetHeight();
                       $scope.find.results[index].episodeInfo = {
                         season: highlight.season,
