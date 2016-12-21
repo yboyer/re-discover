@@ -1,11 +1,11 @@
+const electron = require('electron').remote;
+const { app, shell, globalShortcut, dialog } = electron;
 var fs = require('fs');
 var path = require('path');
-var gui = require('nw.gui');
-var http = require('http');
-var win = gui.Window.get();
-var exec = require('child_process').exec;
-var storageFolder = gui.App.dataPath;
 var https = require('https');
+var win = electron.getCurrentWindow();
+const { exec } = require('child_process');
+var storageFolder = path.join(electron.app.getPath('home'), '.re-discover');
 var postersPath = path.join(storageFolder, 'posters');
 
 var fileUrl = function(str) {
@@ -19,8 +19,6 @@ var fileUrl = function(str) {
 };
 var filePosterPath = fileUrl(postersPath);
 
-
-// win.showDevTools();
 
 var Datastore = require('nedb'),
   db = new Datastore({
@@ -399,14 +397,14 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       requestAsync('https://raw.githubusercontent.com/yboyer/re-discover/master/package.json', function(status, res) {
         if (status === 200) {
           var version = JSON.parse(res).version;
-          if (version !== gui.App.manifest.version) {
+          if (version !== app.getVersion()) {
             $scope.main.setDefault('<div ng-click="main.openReleasePage(\'' + version + '\')" class="link">Update available ! (v' + version + ')</div>');
           }
         }
       });
     };
     $scope.main.openReleasePage = function(tag) {
-      gui.Shell.openExternal('https://github.com/yboyer/re-discover/releases/tag/v' + tag);
+      shell.openExternal('https://github.com/yboyer/re-discover/releases/tag/v' + tag);
     };
 
     $scope.main.updateDatabase = function(callback) {
@@ -624,73 +622,52 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
 
 
     // Listerners
-    win.on('close', function() {
+    window.addEventListener('beforeunload', function(e) {
+      e.returnValue = false;
+
       if ($scope.main.status.show && $scope.main.status.spinner) {
-        if (window.confirm('The application is currentely on process.\n\nDo you want to exit the app anyway ?..')) {
-          gui.App.quit();
+        const id = dialog.showMessageBox(win, {
+          message: 'The application is currentely on process.',
+          detail: 'Do you want to quit the app anyway ?',
+          defaultId: 1,
+          buttons: ['Yes', 'Cancel']
+        });
+
+        if (id === 0) {
+          app.exit();
         }
-      } else {
-        gui.App.quit();
       }
     });
 
-    document.body.shortcut({
-      key: "F5",
-      active: function() {
-        $scope.main.updateDatabase();
-      }
+    globalShortcut.register('F5', function () {
+      $scope.main.updateDatabase();
     });
-    document.body.shortcut({
-      key: "CtrlCmd+D",
-      active: function() {
-        win.showDevTools();
-      }
-    });
-    document.body.shortcut({
-      key: "CtrlCmd+Shift+Delete",
-      active: function() {
-        if (window.confirm('Do you really want to clean the app ?')) {
-          db.remove({}, {
-            multi: true
-          }, function() {
-            db.loadDatabase(function() {
-              localStorage.clear();
-              fs.readdir(postersPath, function(err, files) {
-                for (var f = files.length - 1; f >= 0; f--) {
-                  fs.unlinkSync(postersPath + '/' + files[f]);
-                }
-                gui.App.quit();
-              });
+
+    globalShortcut.register('CmdOrCtrl+Shift+Delete', function () {
+      const id = dialog.showMessageBox(win, {
+        message: 'Warning !',
+        detail: 'Do you really want reset the app as default ?',
+        defaultId: 1,
+        buttons: ['Yes', 'Cancel']
+      });
+
+      if (id === 0) {
+        db.remove({}, {
+          multi: true
+        }, function() {
+          db.loadDatabase(function() {
+            localStorage.clear();
+            fs.readdir(postersPath, function(err, files) {
+              for (var f = files.length - 1; f >= 0; f--) {
+                fs.unlinkSync(postersPath + '/' + files[f]);
+              }
+              exec(process.execPath);
+              app.quit();
             });
           });
-        }
+        });
       }
     });
-
-    if (process.platform === 'darwin') {
-      var menu = new gui.Menu({
-        type: 'menubar'
-      });
-      if (menu.createMacBuiltin !== undefined) {
-        menu.createMacBuiltin(gui.App.manifest.name);
-      }
-
-      document.body.shortcut({
-        key: "Cmd+F",
-        active: function() {
-          win.toggleFullscreen();
-        }
-      });
-    }
-
-    if (/^win/.test(process.platform)) {
-      document.body.shortcut({
-        key: "F11",
-        active: function() {
-          win.toggleFullscreen();
-        }
-      });
-    }
 
     $scope.main.checkUpdates();
     $scope.main.setView();
@@ -936,7 +913,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       if (localStorage.playerPath) {
         exec('"' + localStorage.playerPath + '" "' + filePath + '"');
       } else {
-        gui.Shell.openItem(filePath);
+        shell.openItem(filePath);
       }
       $scope.main.setMessage({
         spinner: true,
@@ -1065,25 +1042,25 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       $scope.browser.status = '';
     };
     $scope.display.openPoster = function(id) {
-      gui.Shell.openItem(postersPath + '/' + id + '.jpg');
+      shell.openItem(postersPath + '/' + id + '.jpg');
     };
     $scope.display.showItem = function(itemPath) {
-      gui.Shell.showItemInFolder(itemPath);
+      shell.showItemInFolder(itemPath);
     };
     $scope.display.openIMDB = function() {
-      gui.Shell.openExternal('http://www.imdb.com/title/' + $scope.display.element.imdb_id + '/');
+      shell.openExternal('http://www.imdb.com/title/' + $scope.display.element.imdb_id + '/');
     };
     $scope.display.openTMBD = function() {
       if ($scope.display.element.type === 'Episode') {
         db.findOne({
           _id: $scope.display.element.serie_id
         }, function(err, doc) {
-          gui.Shell.openExternal('https://www.themoviedb.org/tv/' + doc.tmdb_id + '/season/' + $scope.display.element.season + '/episode/' + $scope.display.element.episode);
+          shell.openExternal('https://www.themoviedb.org/tv/' + doc.tmdb_id + '/season/' + $scope.display.element.season + '/episode/' + $scope.display.element.episode);
         });
       } else if ($scope.display.element.type === 'Serie') {
-        gui.Shell.openExternal('https://www.themoviedb.org/tv/' + $scope.display.element.tmdb_id);
+        shell.openExternal('https://www.themoviedb.org/tv/' + $scope.display.element.tmdb_id);
       } else {
-        gui.Shell.openExternal('https://www.themoviedb.org/movie/' + $scope.display.element.tmdb_id);
+        shell.openExternal('https://www.themoviedb.org/movie/' + $scope.display.element.tmdb_id);
       }
     };
 

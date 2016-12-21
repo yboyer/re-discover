@@ -1,6 +1,4 @@
 /*global path:false */
-const { dialog } = require('electron').remote;
-
 
 angular.module('home', ['ngRoute'])
   .config(['$routeProvider', function($routeProvider) {
