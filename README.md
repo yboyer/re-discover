@@ -1,7 +1,7 @@
 ## (Re)Discover
 > An open-source video indexer built with web technologies
 
-![](media/screenshot.png)
+![](https://raw.githubusercontent.com/yboyer/re-discover/master/.github/screenshot.png?raw=true)
 
 
 ## Get (Re)Discover
