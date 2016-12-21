@@ -2,7 +2,6 @@
   "private": true,
   "name": "re-discover",
   "productName": "(Re)Discover",
-  "author": "Yoann Boyer <contact@yoannboyer.com>",
   "description": "A movie indexer for local files",
   "main": "dist/index.js",
   "repository": "yboyer/re-discover",
