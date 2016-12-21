@@ -30,6 +30,7 @@
   ],
   "devDependencies": {
     "del": "^2.2.0",
+    "electron": "^1.4.13",
     "gulp": "^3.9.0",
     "gulp-bump": "^1.0.0",
     "gulp-cached": "^1.1.0",
@@ -54,7 +55,7 @@
   "scripts": {
     "preinstall": "npm i gulp -g",
     "postinstall": "(cd src && npm install) && gulp build",
-    "start": "nw core",
+    "start": "electron core/main.js",
     "package": "gulp package",
     "release": "gulp release"
   },
