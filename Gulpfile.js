@@ -48,11 +48,10 @@ var htmlminConf = {
 };
 var src = {
   packages: ['package.json', 'src/package.json'],
-  js: ['src/app/tools.js', 'src/app/**/*.js'],
+  js: ['src/app/tools.js', 'src/app/app.js', 'src/app/**/*.js'],
   scss: ['src/**/*.scss', '!src/node_modules/**/*'],
   tpl: {
-    html: ['src/app/**/*.tpl.html'],
-    js: ['src/app/**/*.tpl.html']
+    html: ['src/app/**/*.tpl.html']
   }
 };
 
