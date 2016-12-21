@@ -109,7 +109,7 @@ header {
   #search {
     height: 62px;
     padding-left: 60px;
-    background-image: url(assets/icons/search_light.svg);
+    background-image: url(../assets/icons/search_light.svg);
     background-size: 19px;
     background-repeat: no-repeat;
     background-position: 30px 50%;
@@ -139,7 +139,7 @@ header {
     line-height: 16px;
     font-size: 12px;
     color: rgba(255, 255, 255, 0.5);
-    background-image: url(assets/icons/arrowDown.svg);
+    background-image: url(../assets/icons/arrowDown.svg);
     background-size: 9px;
     background-position: 100% 50%;
     background-repeat: no-repeat;
@@ -215,7 +215,7 @@ header {
   .display {
     height: 16px;
     width: 16px;
-    background-image: url(assets/icons/grid.png);
+    background-image: url(../assets/icons/grid.png);
     position: absolute;
     right: 20px;
     top: 20px;
@@ -226,7 +226,7 @@ header {
     cursor: pointer;
 
     &.list {
-      background-image: url(assets/icons/list.png);
+      background-image: url(../assets/icons/list.png);
     }
     &:hover {
       opacity: 0.7;
@@ -388,7 +388,7 @@ header {
     transition: opacity 1000ms;
 
     &.spinner {
-      background-image: url(assets/icons/loading.svg);
+      background-image: url(../assets/icons/loading.svg);
       background-size: 16px;
       background-position: 0 50%;
       background-repeat: no-repeat;
@@ -422,7 +422,7 @@ header {
   .reload {
     height: 100%;
     width: 21px;
-    background-image: url(assets/icons/reload.svg);
+    background-image: url(../assets/icons/reload.svg);
     background-size: 13px;
     background-position: 50%;
     background-repeat: no-repeat;
@@ -532,7 +532,7 @@ header {
 
       .remove-item {
         cursor: pointer;
-        background-image: url(assets/icons/remove.svg);
+        background-image: url(../assets/icons/remove.svg);
         background-size: 100% 100%;
         margin: 0 5px;
         width: 13px;
@@ -562,7 +562,7 @@ header {
       }
 
       .next {
-        background-image: url(assets/icons/next_dark.svg);
+        background-image: url(../assets/icons/next_dark.svg);
         position: absolute;
         bottom: 25px;
         height: 40px;
@@ -632,11 +632,11 @@ header {
         background-repeat: no-repeat;
 
         &.play {
-          background-image: url(assets/icons/play.svg);
+          background-image: url(../assets/icons/play.svg);
         }
 
         &.next {
-          background-image: url(assets/icons/next_light.svg);
+          background-image: url(../assets/icons/next_light.svg);
         }
       }
 
@@ -1016,7 +1016,7 @@ header {
           background-color: #FFF;
           line-height: 50px;
           padding-left: 45px;
-          background-image: url(assets/icons/search_dark.svg);
+          background-image: url(../assets/icons/search_dark.svg);
           background-size: 19px;
           background-repeat: no-repeat;
           background-position: 15px 16px;
@@ -1055,7 +1055,7 @@ header {
           white-space: nowrap;
 
           &.spinner {
-            background-image: url(assets/icons/loading.svg);
+            background-image: url(../assets/icons/loading.svg);
             background-position: 20px 50%;
             background-repeat: no-repeat;
             padding-left: 50px;
@@ -1287,7 +1287,7 @@ header {
             .date {
               color: rgba(255, 255, 255, 0.8);
               padding-left: 15px;
-              background-image: url(assets/icons/runtime.svg);
+              background-image: url(../assets/icons/runtime.svg);
               background-size: 11px;
               background-position: 0 50%;
               background-repeat: no-repeat;
@@ -1351,7 +1351,7 @@ header {
 
         .showFile {
           height: 15px;
-          background-image: url(assets/icons/folder.svg);
+          background-image: url(../assets/icons/folder.svg);
           position: absolute;
           top: 46px;
           background-position: 0 50%;

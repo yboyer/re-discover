@@ -52,60 +52,56 @@ angular.module('home', ['ngRoute'])
 
 
     $scope.home.getDirChooser = function(value) {
-      var chooser = document.createElement('input');
-      chooser.setAttribute('type', 'file');
-      chooser.setAttribute('webkitdirectory', '');
-      // chooser.setAttributeNode(document.createAttribute('nwdirectory'));
-      var nwworkingdir = document.createAttribute('nwworkingdir');
-      nwworkingdir.value = value || '';
-      chooser.setAttributeNode(nwworkingdir);
+      return {
+        val: value || '',
+        modified: value,
+        show: function() {
+          const dirPaths = dialog.showOpenDialog(win, {
+            title: 'Choose a directory...',
+            defaultPath: this.val || app.getPath('home'),
+            properties: ['openDirectory'],
+          });
 
-      chooser.val = value || '';
-      chooser.modified = value;
-      chooser.addEventListener('change', function() {
-        if (!this.value) {
-          return;
-        }
+          if (!dirPaths || !dirPaths.length) {
+            return;
+          }
 
-        nwworkingdir.value = this.val = this.value;
+          this.val = dirPaths[0];
 
-        if (!this.modified) {
-          for (var d = $scope.home.directories.length - 1; d >= 0; d--) {
-            if (d !== this.index) {
-              if ($scope.home.directories[d].val === this.val) {
-                this.val = '';
-                return;
+          if (!this.modified) {
+            for (var d = $scope.home.directories.length - 1; d >= 0; d--) {
+              if (d !== this.index) {
+                if ($scope.home.directories[d].val === this.val) {
+                  this.val = '';
+                  return;
+                }
+                if ($scope.home.directories[d].val.indexOf(this.val) !== -1) {
+                  $scope.home.directories.splice(d, 1);
+                  continue;
+                }
+                if (~this.val.indexOf($scope.home.directories[d].val)) {
+                  this.val = '';
+                  return;
+                }
               }
-              if ($scope.home.directories[d].val.indexOf(this.val) !== -1) {
-                $scope.home.directories.splice(d, 1);
-                continue;
-              }
-              if (this.val.indexOf($scope.home.directories[d].val) !== -1) {
-                this.val = '';
-                return;
+            }
+            this.modified = true;
+            $scope.home.directories = [$scope.home.getDirChooser()].concat($scope.home.directories);
+          } else {
+            for (var d = $scope.home.directories.length - 1; d >= 0; d--) {
+              if (d !== this.index && $scope.home.directories[d].val === this.val) {
+                $scope.home.directories.splice(this.index, 1);
               }
             }
           }
-          this.modified = true;
-          $scope.home.directories = [$scope.home.getDirChooser()].concat($scope.home.directories);
-        } else {
-          for (var d = $scope.home.directories.length - 1; d >= 0; d--) {
-            if (d !== this.index && $scope.home.directories[d].val === this.val) {
-              $scope.home.directories.splice(this.index, 1);
-            }
-          }
+          $scope.home.updateSubmitStatus();
         }
-        $scope.home.updateSubmitStatus();
-        $scope.$apply();
-      });
-      chooser.show = function() {
-        this.click();
       };
-      return chooser;
     };
     $scope.home.directories = [$scope.home.getDirChooser()];
     $scope.home.removeDirectory = function(index) {
       $scope.home.directories.splice(index, 1);
+      $scope.home.updateSubmitStatus();
     };
     $scope.home.choose = function(index) {
       $scope.home.directories[index].index = index;
@@ -118,25 +114,44 @@ angular.module('home', ['ngRoute'])
     }
 
     $scope.home.getFileBrowser = function(value) {
-      var browser = document.createElement('input');
-      browser.setAttribute('type', 'file');
-      browser.setAttribute('accept', '.exe,.app');
-      browser.val = value || '';
-      browser.addEventListener('change', function() {
-        if (!this.value) {
-          return;
+      const extensions = [];
+      switch (process.platform) {
+        case 'darwin':
+          extensions.push('app');
+          break;
+        case 'win32':
+          extensions.push('exe');
+          break;
+        default:
+          extensions.push('*');
+
+      }
+
+      return {
+        val: value || '',
+        show: function() {
+          const filePaths = dialog.showOpenDialog(win, {
+            title: 'Choose an application...',
+            defaultPath: path.dirname(this.val || app.getPath('home')),
+            properties: ['openFile'],
+            filters: [{
+              name: 'Application',
+              extensions
+            }]
+          });
+
+          if (!filePaths || !filePaths.length) {
+            return;
+          }
+          this.val = filePaths[0].replace(/\\/g, '/');
+          $scope.home.updateSubmitStatus();
         }
-        this.val = this.value.replace(/\\/g, '/');
-        $scope.home.updateSubmitStatus();
-      });
-      browser.show = function() {
-        this.click();
       };
-      return browser;
     };
     $scope.home.playerPath = $scope.home.getFileBrowser(localStorage.playerPath);
     $scope.home.clearPlayer = function() {
       $scope.home.playerPath.val = '';
+      $scope.home.updateSubmitStatus();
     };
     $scope.home.findPlayer = function() {
       $scope.home.playerPath.show();

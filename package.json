@@ -1,35 +1,14 @@
 {
-  "name": "re-discover",
-  "description": "A movie indexer for local files.",
-  "version": "1.2.0",
+  "author": "yboyer AS <contact@yoannboyer.com> (http://yoannboyer.com/)",
   "repository": {
     "type": "git",
     "url": "https://github.com/yboyer/re-discover.git"
   },
-  "bugs": {
-    "url": "https://github.com/yboyer/re-discover/issues"
-  },
-  "keywords": [
-    "indexer",
-    "movies",
-    "series",
-    "poster",
-    "details",
-    "list",
-    "grid",
-    "search",
-    "informations",
-    "info",
-    "authors",
-    "director",
-    "abstract",
-    "genres",
-    "duplicates",
-    "missings",
-    "sorting"
-  ],
+  "license": "MIT",
   "devDependencies": {
     "del": "^2.2.0",
+    "electron": "^1.4.13",
+    "electron-builder": "^10.9.2",
     "gulp": "^3.9.0",
     "gulp-bump": "^1.0.0",
     "gulp-cached": "^1.1.0",
@@ -47,16 +26,29 @@
     "jshint": "^2.8.0",
     "jshint-stylish": "^2.1.0",
     "merge-stream": "^1.0.0",
-    "node-notifier": "^4.4.0",
-    "nw": "^0.12.3",
-    "nw-builder": "2.1.0"
+    "node-notifier": "^4.4.0"
   },
   "scripts": {
-    "preinstall": "npm i gulp -g",
-    "postinstall": "(cd src && npm install) && gulp build",
-    "start": "nw core",
-    "package": "gulp package",
-    "release": "gulp release"
+    "postinstall": "install-app-deps && gulp build",
+    "start": "electron app",
+    "dev": "gulp",
+    "build": "gulp build:min && build",
+    "build-all": "gulp build:min && build -mwl",
+    "pack": "gulp build && build --dir"
   },
-  "license": "MIT"
+  "build": {
+    "appId": "com.yboyer.re-discover",
+    "category": "public.app-category.productivity",
+    "files": [
+      "**/*",
+      "!src",
+      "!main.js"
+    ],
+    "linux": {
+      "target": "deb"
+    },
+    "mac": {
+      "target": "zip"
+    }
+  }
 }

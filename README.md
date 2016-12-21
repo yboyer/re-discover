@@ -1,60 +1,27 @@
 ## (Re)Discover
-**(Re)Discover** is a local movie indexer build on [NW.js](http://nwjs.io/).
-Fast, simple and easy to use: another intuitive way to discover or rediscover movies.
+> An open-source video indexer built with web technologies
 
 ![](media/screenshot.png)
 
 
-### Features
+## Get (Re)Discover
 
-* `TODO`
+**[Download the latest release](https://github.com/yboyer/re-discover/releases/latest)** (all platform supported)
 
-### Downloads - [Changelog](https://github.com/yboyer/re-discover/releases/)
-
-[Download](https://github.com/yboyer/re-discover/releases/latest) the app, unzip, and move it to the applications folder.
-
-- `2016-03-23` [`v1.2.0`](https://github.com/yboyer/re-discover/releases/tag/v1.2.0)
-- `2016-03-19` [`v1.1.0`](https://github.com/yboyer/re-discover/releases/tag/v1.1.0)
-- `2016-03-17` [`v1.0.0`](https://github.com/yboyer/re-discover/releases/tag/v1.0.0)
-- `2016-01-13` [`v0.4.1`](https://github.com/yboyer/re-discover/releases/tag/v0.4.1)
-- `2016-01-13` [`v0.4.0`](https://github.com/yboyer/re-discover/releases/tag/v0.4.0)
-- `2016-01-10` [`v0.3.1`](https://github.com/yboyer/re-discover/releases/tag/v0.3.1)
-- `2016-01-10` [`v0.3.0`](https://github.com/yboyer/re-discover/releases/tag/v0.3.0)
+_[[Changelog]](https://github.com/yboyer/re-discover/releases/)_
 
 
----
+## Contribute
 
-### Installation
-###### Download
+1. [Fork](https://help.github.com/articles/fork-a-repo/) this repository to your own GitHub account and then [clone](https://help.github.com/articles/cloning-a-repository/) it to your local device
+2. Install the dependencies: `npm i`
+3. Build the code and watch for changes: `npm run dev`
+4. Run the app: `npm start`
 
-```bash
-git clone https://github.com/yboyer/re-discover.git && cd re-dicover
+To make sure that your code works in the finished app, you can generate the binary:
+
+```sh
+npm run pack
 ```
 
-###### Install dependencies & run
-
-```bash
-npm i
-npm start
-```
-
-###### Package
-
-```bash
-npm run package
-```
-
-
-### Tests
-
-```js
-TODO
-```
-
-## Contributing
-
-See [Contributing Guide](CONTRIBUTING.md).
-
-## License
-
-[MIT](LICENCE)
+After that, you'll see the binary in the `./dist` folder :simple_smile:

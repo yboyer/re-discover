@@ -5,7 +5,6 @@ var gulp = require('gulp');
 var bump = require('gulp-bump');
 var gutil = require('gulp-util');
 var debug = require('gulp-debug');
-var NwBuilder = require('nw-builder');
 var zip = require('gulp-zip');
 var uglify = require('gulp-uglify');
 var cache = require('gulp-cached');
@@ -19,10 +18,13 @@ var merge = require('merge-stream');
 var notifier = require('node-notifier');
 var gnotifier = require('gulp-notify');
 
+var SRC_DIR = 'app/src';
+var DIST_DIR = 'app/dist';
 
-var appName = require('./src/package.json').name;
-var appVersion = require('./package.json').version;
-var appUrl = require('./package.json').repository.url;
+var manifest = require('./app/package.json');
+var appName = manifest.name;
+var appVersion = manifest.version;
+var appUrl = manifest.repository.url;
 
 
 var outputName = function(platform) {
@@ -30,29 +32,16 @@ var outputName = function(platform) {
   platform = platform.slice(0, -2);
   return appName + '_v' + appVersion + '_' + platform + '-' + arch;
 };
-var nwConf = {
-  files: ['core/**/*'],
-  version: '0.12.3',
-  platforms: ['osx64', 'win64'],
-  zip: false,
-  releaseDir: 'nw-release',
-  buildDir: 'nw-builds',
-  cacheDir: 'nw-cache',
-  winIco: 'media/icon.ico',
-  macIcns: 'media/icon.icns'
-};
 var htmlminConf = {
   collapseWhitespace: true,
   removeRedundantAttributes: true,
   ignoreCustomFragments: [/\s?\{\{.*?\}\}\s?/g]
 };
 var src = {
-  packages: ['package.json', 'src/package.json'],
-  js: ['src/app/tools.js', 'src/app/**/*.js'],
-  scss: ['src/**/*.scss', '!src/node_modules/**/*'],
+  js: [SRC_DIR + '/app/tools.js', SRC_DIR + '/app/app.js', SRC_DIR + '/app/**/*.js'],
+  scss: [SRC_DIR + '/**/*.scss', '!app/src/node_modules/**/*'],
   tpl: {
-    html: ['src/app/**/*.tpl.html'],
-    js: ['src/app/**/*.tpl.html']
+    html: [SRC_DIR + '/app/**/*.tpl.html']
   }
 };
 
@@ -80,72 +69,9 @@ gulp.task('build', ['clean', 'html2js', 'concat:angular', 'concat:js', 'scss', '
 gulp.task('build:min', ['clean', 'html2js', 'concat:angular', 'concat:js:min', 'scss', 'copy:min'], function() {
   notify('Build done');
 });
-gulp.task('package', ['build:min'], function(cb) {
-  del.sync('nw-builds/**/*');
-  var nw = new NwBuilder(nwConf);
-
-  nw.on('log', function(msg) {
-    gutil.log(msg);
-  });
-
-  nw.build().then(function() {
-    del.sync([nwConf.buildDir + '/**/ffmpegsumo.dll', nwConf.buildDir + '/**/pdf.dll']);
-    nwConf.platforms.map(function(platform) {
-      return fs.writeFileSync(nwConf.buildDir + '/' + appName + '/' + platform + '/Release v' + appVersion);
-    });
-    cb();
-  }).catch(function(err) {
-    gutil.log(err);
-  });
-});
-gulp.task('releaseWin', ['package'], function(cb) {
-  del.sync('nw-release/**/*win-*');
-  var nbSetup = 0;
-  nwConf.platforms.map(function(platform) {
-    if (!/win/.test(platform)) {
-      return;
-    }
-    nbSetup++;
-    var child = spawn('C:\\Program Files (x86)\\Inno Setup 5\\ISCC.exe', [
-      'setup.iss',
-      '/dAppName=' + appName,
-      '/dAppVersion=' + appVersion,
-      '/dAppURL=' + appUrl,
-      '/dPlatform=' + platform,
-      '/dBuildDir=' + nwConf.buildDir,
-      '/F' + outputName(platform)
-    ]);
-    child.stdout.pipe(process.stdout);
-    child.stderr.pipe(process.stderr);
-
-    child.on('close', function() {
-      if (--nbSetup === 0) {
-        cb();
-      }
-    });
-  });
-});
-gulp.task('releaseOsx', ['package'], function() {
-  del.sync('nw-release/**/*osx-*');
-  var m = merge();
-  nwConf.platforms.map(function(platform) {
-    if (!/osx/.test(platform)) {
-      return;
-    }
-    fs.writeFileSync(nwConf.buildDir + '/' + appName + '/' + platform + '/Release v' + appVersion, '');
-    m.add(gulp.src(nwConf.buildDir + '/' + appName + '/' + platform + '/**')
-      .pipe(zip(outputName(platform) + '.zip'))
-      .pipe(debug({
-        title: 'zip:'
-      }))
-      .pipe(gulp.dest(nwConf.releaseDir)));
-  });
-  return m;
-});
-gulp.task('release', ['releaseWin', 'releaseOsx']);
 
 gulp.task('clean', function() {
-  return del.sync('core/*');
+  return del.sync(DIST_DIR + '/*');
 });
 
 gulp.task('html2js', function() {
@@ -162,12 +88,12 @@ gulp.task('html2js', function() {
     .pipe(remember('templates'))
     .pipe(concat('templates.js'))
     .pipe(uglify())
-    .pipe(gulp.dest('core'))
+    .pipe(gulp.dest(DIST_DIR))
     .pipe(gnotify('templates'));
 });
 
 gulp.task('concat:angular', function() {
-  return gulp.src(['vendor/angular/angular.min.js', 'vendor/angular/angular-route.min.js'])
+  return gulp.src([SRC_DIR + '/vendors/angular/angular.min.js', SRC_DIR + '/vendors/angular/angular-route.min.js'])
     .pipe(cache('angular'))
     .pipe(debug({
       title: 'js:'
@@ -175,7 +101,7 @@ gulp.task('concat:angular', function() {
     .pipe(remember('angular'))
     .pipe(concat('angular.js'))
     .pipe(uglify())
-    .pipe(gulp.dest('core'));
+    .pipe(gulp.dest(DIST_DIR));
 });
 gulp.task('concat:js', function() {
   return gulp.src(src.js)
@@ -185,7 +111,7 @@ gulp.task('concat:js', function() {
     }))
     .pipe(remember('js'))
     .pipe(concat('app.js'))
-    .pipe(gulp.dest('core'))
+    .pipe(gulp.dest(DIST_DIR))
     .pipe(gnotify('js'));
 });
 gulp.task('concat:js:min', function() {
@@ -197,7 +123,7 @@ gulp.task('concat:js:min', function() {
     .pipe(remember('js'))
     .pipe(concat('app.js'))
     .pipe(uglify())
-    .pipe(gulp.dest('core'))
+    .pipe(gulp.dest(DIST_DIR))
     .pipe(gnotify('js'));
 });
 
@@ -212,7 +138,7 @@ gulp.task('scss', function() {
     }).on('error', sass.logError))
     .pipe(remember('scss'))
     .pipe(concat('app.css'))
-    .pipe(gulp.dest('core'))
+    .pipe(gulp.dest(DIST_DIR))
     .pipe(gnotify('scss'));
 });
 
@@ -244,20 +170,16 @@ gulp.task('bump:major', function() {
 
 gulp.task('copy', function() {
   return merge(
-    gulp.src('src/package.json').pipe(cache('package')).pipe(remember('package')).pipe(gulp.dest('core')),
-    gulp.src('src/index.html').pipe(cache('index')).pipe(remember('index')).pipe(gulp.dest('core')),
-    gulp.src('src/node_modules/**/*').pipe(cache('modules')).pipe(remember('modules')).pipe(gulp.dest('core/node_modules')),
-    gulp.src('media/icon.png').pipe(cache('icon')).pipe(remember('icon')).pipe(gulp.dest('core/assets')),
-    gulp.src('src/assets/**/*').pipe(cache('assets')).pipe(remember('assets')).pipe(gulp.dest('core/assets'))
+    gulp.src(SRC_DIR + '/index.html').pipe(cache('index')).pipe(remember('index')).pipe(gulp.dest(DIST_DIR)),
+    gulp.src(SRC_DIR + '/index.js').pipe(cache('index')).pipe(remember('index')).pipe(gulp.dest(DIST_DIR)),
+    gulp.src('build/icons/1024x1024.png').pipe(cache('icon')).pipe(remember('icon')).pipe(gulp.dest(DIST_DIR + '/assets'))
   );
 });
 gulp.task('copy:min', function() {
   return merge(
-    gulp.src('src/package.json').pipe(cache('package')).pipe(remember('package')).pipe(gulp.dest('core')),
-    gulp.src('src/index.html').pipe(cache('index')).pipe(remember('index')).pipe(htmlmin(htmlminConf)).pipe(gulp.dest('core')),
-    gulp.src('src/node_modules/**/*').pipe(cache('modules')).pipe(remember('modules')).pipe(gulp.dest('core/node_modules')),
-    gulp.src('media/icon.png').pipe(cache('icon')).pipe(remember('icon')).pipe(gulp.dest('core/assets')),
-    gulp.src('src/assets/**/*').pipe(cache('assets')).pipe(remember('assets')).pipe(gulp.dest('core/assets'))
+    gulp.src(SRC_DIR + '/index.html').pipe(cache('indexhtml')).pipe(remember('indexhtml')).pipe(htmlmin(htmlminConf)).pipe(gulp.dest(DIST_DIR)),
+    gulp.src(SRC_DIR + '/index.js').pipe(cache('indexjs')).pipe(remember('indexjs')).pipe(uglify().on('error', errorHandler('Uglify'))).pipe(gulp.dest(DIST_DIR)),
+    gulp.src('./build/icons/1024x1024.png').pipe(cache('icon')).pipe(remember('icon')).pipe(gulp.dest(DIST_DIR + '/assets'))
   );
 });
 
@@ -265,5 +187,12 @@ gulp.task('watch', function() {
   gulp.watch(src.tpl.html, ['html2js']);
   gulp.watch(src.scss, ['scss']);
   gulp.watch(src.js, ['concat:js']);
-  gulp.watch(['src/package.json', 'src/index.html', 'src/node_modules/**/*', 'media/icon.png', 'src/assets/**/*'], ['copy']);
+  gulp.watch([DIST_DIR + '/index.html', './build/icons/1024x1024.png'], ['copy']);
 });
+
+function errorHandler(title) {
+  return function (err) {
+    gutil.log(gutil.colors.red(`[${title}]`), err.toString());
+    this.emit('end');
+  };
+};
