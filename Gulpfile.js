@@ -246,6 +246,7 @@ gulp.task('copy', function() {
   return merge(
     gulp.src('src/package.json').pipe(cache('package')).pipe(remember('package')).pipe(gulp.dest('core')),
     gulp.src('src/index.html').pipe(cache('index')).pipe(remember('index')).pipe(gulp.dest('core')),
+    gulp.src('src/main.js').pipe(cache('main')).pipe(remember('main')).pipe(gulp.dest('core')),
     gulp.src('src/node_modules/**/*').pipe(cache('modules')).pipe(remember('modules')).pipe(gulp.dest('core/node_modules')),
     gulp.src('media/icon.png').pipe(cache('icon')).pipe(remember('icon')).pipe(gulp.dest('core/assets')),
     gulp.src('src/assets/**/*').pipe(cache('assets')).pipe(remember('assets')).pipe(gulp.dest('core/assets'))
