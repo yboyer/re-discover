@@ -117,7 +117,7 @@ function createWindow() {
 function addUpdateMenuItems(items, position) {
   if (process.mas) {return;}
 
-  const version = electron.app.getVersion();
+  const version = app.getVersion();
   let updateItems = [{
     label: `Version ${version}`,
     enabled: false
@@ -145,6 +145,19 @@ function addUpdateMenuItems(items, position) {
   items.splice.apply(items, [position, 0].concat(updateItems));
 }
 
+// Make a single instance
+const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
+  // Someone tried to run a second instance, we should focus our window.
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore();
+    }
+    mainWindow.focus();
+  }
+});
+if (shouldQuit) {
+  app.exit();
+}
 
 
 app.on('ready', () => {
@@ -173,7 +186,7 @@ if (process.platform === 'win32') {
 }
 
 if (process.platform === 'darwin') {
-  const name = electron.app.getName();
+  const name = app.getName();
   template.unshift({
     label: name,
     submenu: [{
