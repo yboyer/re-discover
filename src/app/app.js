@@ -5,6 +5,7 @@ var http = require('http');
 var win = gui.Window.get();
 var exec = require('child_process').exec;
 var storageFolder = gui.App.dataPath;
+var https = require('https');
 var postersPath = path.join(storageFolder, 'posters');
 
 var fileUrl = function(str) {
@@ -49,7 +50,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     return {
       _possibleLanguages: ['vff', 'vfq', 'vfi', 'vf2', 'vo', 'multi', 'french', 'truefrench'],
       downloadPoster: function(url, filename, callback) {
-        http.get(url, function(response) {
+        https.get(url, function(response) {
           if (callback) {
             response.pipe(fs.createWriteStream(filename)).on('close', callback);
           } else {
