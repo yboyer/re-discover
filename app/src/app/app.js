@@ -593,7 +593,6 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
       $location.url(localStorage.display + '/' + type);
     };
 
-
     // Preload posters and clean the 'posters' folder
     db.find({}, function(err, docs) {
       var ids = [];
@@ -636,6 +635,8 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
         if (id === 0) {
           app.exit();
         }
+      } else {
+        app.exit();
       }
     });
 
@@ -662,7 +663,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
                 fs.unlinkSync(postersPath + '/' + files[f]);
               }
               exec(process.execPath);
-              app.quit();
+              app.exit();
             });
           });
         });

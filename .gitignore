@@ -1,7 +1,3 @@
-# nwjs
-nw-*/
-
-# Others
-core/
-ideas/
-node_modules/
+app/dist/
+dist/
+**/node_modules/
