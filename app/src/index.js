@@ -1,6 +1,4 @@
-const electron = require('electron');
-const { app, BrowserWindow, Menu } = electron;
-
+const { app, BrowserWindow, Menu, autoUpdater } = require('electron');
 const path = require('path');
 const url = require('url');
 
@@ -130,7 +128,7 @@ function addUpdateMenuItems(items, position) {
     visible: false,
     key: 'checkForUpdate',
     click: function() {
-      require('electron').autoUpdater.checkForUpdates();
+      autoUpdater.checkForUpdates();
     }
   }, {
     label: 'Restart and Install Update',
@@ -138,7 +136,7 @@ function addUpdateMenuItems(items, position) {
     visible: false,
     key: 'restartToUpdate',
     click: function() {
-      require('electron').autoUpdater.quitAndInstall();
+      autoUpdater.quitAndInstall();
     }
   }];
 
