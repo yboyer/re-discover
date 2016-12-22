@@ -1680,7 +1680,14 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
           if (!this.title_fr && !this.title_en && !this.title) {
             return reg.test(this.clean_filename.removeDiacritics());
           }
-          return reg.test(this.title_fr.removeDiacritics()) || reg.test(this.title_en.removeDiacritics()) || reg.test(this.title.removeDiacritics());
+
+          const match = reg.test(this.title_fr.removeDiacritics()) || reg.test(this.title_en.removeDiacritics());
+
+          if (this.type === 'Movie') {
+            return match || reg.test(this.title.removeDiacritics());
+          }
+
+          return match;
         };
       } else {
         delete $scope.browser.query.$where;
