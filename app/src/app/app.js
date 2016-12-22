@@ -394,7 +394,7 @@ angular.module('app', ['ngRoute', 'home', 'templates'])
     };
 
     $scope.main.checkUpdates = function() {
-      requestAsync('https://raw.githubusercontent.com/yboyer/re-discover/master/package.json', function(status, res) {
+      requestAsync('https://raw.githubusercontent.com/yboyer/re-discover/master/app/package.json', function(status, res) {
         if (status === 200) {
           var version = JSON.parse(res).version;
           if (version !== app.getVersion()) {
